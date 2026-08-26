@@ -9,6 +9,7 @@
     --bg:#f4f6f8; --panel:#ffffff; --ink:#1c2733; --muted:#5b6b7a;
     --line:#dbe2e8; --accent:#005f73; --accent2:#0a9396; --danger:#9b2226;
     --grid:#c9d3dc; --shadow:0 1px 3px rgba(18,38,58,.08),0 4px 18px rgba(18,38,58,.06);
+    --gA:#bfe6c4; --gB:#e0f2e4; --gD:#f6dede; --gF:#f2c6c6;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -16,7 +17,7 @@
     line-height:1.45;-webkit-font-smoothing:antialiased}
   header{padding:22px 24px 10px}
   h1{margin:0;font-size:22px;letter-spacing:-.2px}
-  .sub{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:860px}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:880px}
   .tabs{display:flex;gap:8px;padding:14px 24px 0;flex-wrap:wrap}
   .tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);
     padding:9px 16px;border-radius:9px 9px 0 0;cursor:pointer;font-size:14px;font-weight:600;
@@ -42,14 +43,15 @@
   .swatch{width:11px;height:11px;border-radius:3px;flex:0 0 auto;border:1px solid rgba(0,0,0,.15)}
   .citylink{color:var(--accent);text-decoration:none;font-weight:700;font-size:12px;padding:0 1px}
   .citylink:hover{text-decoration:underline}
-  input.cell:disabled{color:var(--ink);-webkit-text-fill-color:var(--ink);opacity:1;cursor:default}
-  input.cname:read-only,input.pname:read-only{cursor:default}
+  .gcell{padding:7px 2px;font-weight:800;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .gcell.colhidden{opacity:.4}
   input.cell{width:100%;border:none;background:transparent;text-align:center;font-size:13px;
     padding:7px 2px;color:var(--ink);font-variant-numeric:tabular-nums}
-  input.cell.hi{background:#d9f2df}
-  input.cell.lo{background:#fbe0e0}
   input.cell.colhidden{opacity:.4}
   input.cell:focus{outline:2px solid var(--accent);outline-offset:-2px;background:#f0fbfc}
+  .gA{background:var(--gA)} .gB{background:var(--gB)} .gC{background:transparent}
+  .gD{background:var(--gD)} .gF{background:var(--gF)}
+  input.cname:read-only,input.pname:read-only{cursor:default}
   input.pname{border:none;background:transparent;font-size:12.5px;padding:6px 8px;width:100%;
     text-align:left;color:var(--ink);font-weight:600}
   input.cname{border:none;background:transparent;font-size:12.5px;padding:2px;width:76px;
@@ -73,11 +75,8 @@
   svg.radar{width:100%;max-width:500px;height:auto;display:block}
   .blendrow td,.blendrow th{background:#eaf4f6;font-weight:800}
   .blendlbl{padding:7px 8px;text-align:left;color:var(--accent);font-size:12.5px}
-  .blendval{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;padding:7px 2px}
+  .blendval{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;padding:7px 2px;font-weight:800}
   .blendval.colhidden{opacity:.4}
-  .blendval.base{color:var(--muted);font-weight:700}
-  td.blendval.hi{background:#c9ecd2}
-  td.blendval.lo{background:#f6d6d6}
   .lockbtn{background:#eef2f5}
   .lockbanner{font-size:12px;color:var(--muted);margin:10px 0 0}
   .legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:8px;font-size:12.5px}
@@ -94,6 +93,8 @@
   .note{font-size:12px;color:var(--muted);background:#fff8e8;border:1px solid #f0e2bd;
     padding:8px 11px;border-radius:8px;margin-top:12px}
   .scalehint{font-size:11.5px;color:var(--muted);margin-top:4px;text-align:center;max-width:440px}
+  .gradekey{font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center;max-width:440px}
+  .gradekey b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -101,11 +102,11 @@
   <h1>Climate Haven Radars</h1>
   <div class="sub"><b>Logan, UT is the baseline &mdash; where we are now.</b> The default <b>&Delta; vs Logan</b> view puts Logan on the
   bold center ring; every other city bows <b>outward where it beats Logan</b> and <b>inward where it&rsquo;s worse</b>, one axis at a time,
-  for a family&rsquo;s 30s&ndash;40s (the window when Logan degrades). Five radars &mdash; <b>Comfort&nbsp;2030s</b>, <b>Comfort&nbsp;2040s</b>,
-  <b>Economic</b>, <b>Accessibility</b>, <b>Safety</b> &mdash; cover safety, outdoor comfort, access (what makes life possible), and amenities
-  (what makes it enjoyable). Compare the two Comfort tabs to spot places that fade by the 2040s. Flip to <b>Absolute&nbsp;0&ndash;10</b> for raw
-  grades. Grades are <b>locked</b>; hit <b>Unlock editing</b> to change values or add a city. <b>Click a numbered vertex</b> for its label;
-  <b>click a city in the legend</b> to isolate it, click another to <b>morph</b>, <b>double-click</b> to show all.</div>
+  for a family&rsquo;s 30s&ndash;40s (the window when Logan degrades). Grades show as <b>letters A&ndash;F</b> (A best, F worst). Five radars &mdash;
+  <b>Comfort&nbsp;2030s</b>, <b>Comfort&nbsp;2040s</b>, <b>Economic</b>, <b>Accessibility</b>, <b>Safety</b> &mdash; cover safety, outdoor comfort,
+  access (what makes life possible), and amenities (what makes it enjoyable). Compare the two Comfort tabs to spot places that fade by the 2040s.
+  Flip to <b>Absolute</b> for the plain letter grid. Grades are <b>locked</b>; hit <b>Unlock editing</b> to edit the raw 0&ndash;10 or add a city.
+  <b>Click a numbered vertex</b> for its label; <b>click a city in the legend</b> to isolate it, click another to <b>morph</b>, <b>double-click</b> to show all.</div>
 </header>
 
 <div class="tabs" id="tabs"></div>
@@ -131,11 +132,12 @@
     <div class="chartcol">
       <div class="viewtoggle">
         <button id="viewDelta" onclick="setView('delta')">&Delta; vs Logan</button>
-        <button id="viewAbs" onclick="setView('absolute')">Absolute 0&ndash;10</button>
+        <button id="viewAbs" onclick="setView('absolute')">Absolute</button>
       </div>
       <div class="panel-title" id="chartTitle"></div>
       <svg class="radar" id="svg" viewBox="0 0 520 470" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="scalehint" id="scalehint"></div>
+      <div class="gradekey"><b>A</b> excellent &middot; <b>B</b> good &middot; <b>C</b> middling &middot; <b>D</b> poor &middot; <b>F</b> awful</div>
       <div class="legend" id="legend"></div>
       <div class="focushint" id="focushint"></div>
       <div class="axiskey" id="axiskey"></div>
@@ -152,6 +154,11 @@
 const PALETTE = ["#005f73","#9b2226","#0a9396","#ca6702","#3d348b","#588157",
                  "#bc6c25","#4a4e69","#6a040f","#1d3557","#7209b7","#2a9d8f"];
 
+/* ---------- letter grades ----------
+   Underlying data stays 0-10; letters are a display layer.
+   A = 9-10 · B = 7-8 · C = 5-6 · D = 3-4 · F = 0-2 */
+function grade(v){ v=Math.max(0,Math.min(10,v)); return v>=9?"A":v>=7?"B":v>=5?"C":v>=3?"D":"F"; }
+
 /* ---------- default data ----------
    All scores are ABSOLUTE 0-10 (higher = better). The "vs Logan" delta view is
    computed at render time from these absolutes, so the stored data never shifts. */
@@ -165,26 +172,28 @@ function defaults(){
     {name:"Roanoke, VA",                   url:"https://en.wikipedia.org/wiki/Roanoke,_Virginia",                               color:"#7209b7"}
   ];
   const mk=rows=>META.map((m,i)=>({name:m.name,url:m.url,color:m.color,values:rows[i].slice()}));
-  const DELTA="Default view is Δ vs Logan: Logan sits on the bold center ring (where we are now); each city bows OUTWARD where "+
-    "it beats Logan and INWARD where it's worse, one axis at a time. Flip to Absolute 0–10 for the raw grades. ";
+  const DELTA="Default view is Δ vs Logan: Logan sits on the bold center ring (where we are now); each city bows OUTWARD where it "+
+    "beats Logan and INWARD where it's worse, one axis at a time. Grades show as letters A (best) to F (worst); flip to Absolute for "+
+    "the plain letter grid, or unlock to edit the raw 0–10. ";
   return {
     comfort2030:{
       label:"Comfort · 2030s",
-      note:DELTA+"Comfort is graded to YOUR reality: 10 = realistically excellent, ~7–8 = genuinely good, 5 = neutral, 2–3 = a real "+
-        "weakness. Humidity peaks at a moderate 'Long Beach' ideal — both desert-dry Logan AND muggy score lower; Winter Mildness rewards "+
-        "mild AND SUNNY winters (a mild-but-gray winter scores low); Sunshine and low pollen are 'more is better.' Compare with Comfort · "+
-        "2040s to see which places hold up. Logan's real strengths (sunshine) show as its high axes; its weaknesses (aridity, June allergies) "+
-        "show as low ones.",
-      params:["Summer Heat Comfort","Winter Mildness","Humidity (moderate = ideal)","Sunshine","Allergy Resilience"],
-      cities:mk([[6,4,3,9,3],[7,4,7,3,3],[7,3,7,5,5],[6,8,5,6,3],[6,8,5,7,3],[7,7,6,7,3]])
+      note:DELTA+"Comfort axes tuned to your ideals: Summer Feels-Like blends heat AND humidity toward a moderate 'Long Beach' sweet "+
+        "spot — both desert-dry Logan and muggy Southern summers score lower. Winter Character peaks at 20s–30s WITH snow; lots of "+
+        "sub-20 pulls it down, sub-zero is awful, and NO snow at all is also awful. Sky Balance rewards a roughly even sun/cloud mix "+
+        "that trades off often — relentless sun OR weeks of gray both score worse. Four-Season Distinctness rewards four "+
+        "pronounced-but-comfortable seasons. Allergy is on general pollen load (Logan = your personal Cache-Valley June reaction). "+
+        "Compare with Comfort · 2040s to see which places hold up.",
+      params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
+      cities:mk([[5,5,5,7,3],[6,7,4,8,3],[6,4,6,7,5],[5,6,6,7,3],[4,6,6,7,3],[5,6,6,7,3]])
     },
     comfort2040:{
       label:"Comfort · 2040s",
-      note:DELTA+"Same axes on the ~2045 trajectory: warming trims Summer Heat and Humidity comfort (most in the South/TN) and lengthens "+
-        "allergy season, while softening winters. Where a city's 2040s star is SMALLER than its 2030s star, its comfort is eroding — the "+
-        "'happy now but not later' test. Logan's summer-heat comfort slides hardest here.",
-      params:["Summer Heat Comfort","Winter Mildness","Humidity (moderate = ideal)","Sunshine","Allergy Resilience"],
-      cities:mk([[4,5,2,9,2],[6,5,6,3,2],[6,4,6,5,4],[4,9,4,6,2],[5,9,4,7,2],[5,8,5,7,2]])
+      note:DELTA+"Same axes on the ~2045 trajectory: warming softens Summer Feels-Like (worst in the humid South/TN), thins winter "+
+        "snow (nudging mild places toward the 'no snow' penalty), and blurs Four-Season Distinctness in the South. Where a city's "+
+        "2040s star is SMALLER than its 2030s star, its comfort is eroding — the 'happy now but not later' test.",
+      params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
+      cities:mk([[4,5,5,7,2],[5,6,4,8,2],[5,5,6,7,4],[4,5,6,6,2],[3,5,6,6,2],[4,5,6,6,2]])
     },
     economic:{
       label:"Economic",
@@ -197,21 +206,22 @@ function defaults(){
     },
     accessibility:{
       label:"Accessibility",
-      note:DELTA+"Access to what a family uses: boatable water within ~1 hr (kayak → jet ski), K-12 plus higher-ed strength, hospital "+
-        "quality/proximity, a well-connected airport, and walkable neighborhoods with parks and trails. Logan's water-recreation score reflects "+
-        "a drought-declining watershed on a 20-yr horizon. Outward = more / better access than Logan.",
+      note:DELTA+"Access a family uses. Water Recreation is graded by drive time to boatable water: ≤30 min = A, ~60 = C, ~90 = D, "+
+        "≥120 min = prohibitive (F). Plus K-12 and higher-ed strength, hospital quality/proximity, a well-connected airport, and walkable "+
+        "neighborhoods with parks and trails. Outward = more / better access than Logan.",
       params:["Water Recreation","Education","Healthcare","Airport Proximity","Walkability & Parks"],
-      cities:mk([[6,6,4,4,5],[8,9,10,9,5],[9,8,9,7,8],[9,5,4,4,4],[5,9,9,5,8],[8,6,7,5,6]])
+      cities:mk([[6,6,4,4,5],[9,9,10,9,5],[10,8,9,7,8],[9,5,4,4,4],[7,9,9,5,8],[7,6,7,5,6]])
     },
     safety:{
       label:"Safety",
-      note:DELTA+"Hazard exposure and adaptation through ~2045. Fire / Smoke weighs STRUCTURAL smoke (chronic local fire + a valley bowl that "+
-        "traps it + winter inversions — Logan's core problem) heavily and counts episodic Canadian smoke that rain clears only lightly. Flood "+
-        "is scored for a ~$550–600K home bought OUT of the floodplain, not the metro's blanket risk. Then storm/tornado/hurricane, long-term "+
-        "water & food security, and Climate Plan & Governance (does the state/city actually plan for climate change?). Outward = safer / "+
-        "better-governed than Logan.",
+      note:DELTA+"Hazard exposure and adaptation through ~2045. Air Quality is anchored to Logan's reality: the WORST is a winter "+
+        "inversion loaded with wildfire smoke (plus the arsenic-dust risk from the drying Great Salt Lake bed for Cache County); the BEST "+
+        "is the clean air right after a rainstorm flushes the inversion — every city sits on that spectrum. Fire / Smoke weighs STRUCTURAL "+
+        "smoke (chronic local fire + a valley bowl that traps it — Logan's core problem) far above episodic Canadian smoke that rain clears. "+
+        "Flood assumes a smart ~$550–600K purchase OUT of the floodplain. Then storm/tornado/hurricane, long-term water & food security, and "+
+        "Climate Plan & Governance (does the state/city actually plan for climate change?). Outward = safer / better-governed than Logan.",
       params:["Fire / Smoke Safety","Air Quality","Flood Safety","Storm / Tornado Safety","Water & Food Security","Climate Plan & Governance"],
-      cities:mk([[2,2,8,10,2,3],[9,6,9,6,9,7],[9,9,8,6,8,8],[7,7,8,5,8,3],[8,8,8,6,8,7],[7,8,7,6,8,6]])
+      cities:mk([[2,1,8,10,2,3],[9,6,9,6,9,7],[9,9,8,6,8,8],[7,7,8,5,8,3],[8,8,8,6,8,7],[7,8,7,6,8,6]])
     }
   };
 }
@@ -248,16 +258,16 @@ function toDisplay(vals,ds){
   if(viewMode!=="delta") return vals;
   return deltaVals(vals,ds).map(x=> 5+Math.max(-5,Math.min(5,x)));
 }
-function avgDelta(vals,ds){ const d=deltaVals(vals,ds); return d.reduce((a,b)=>a+b,0)/(d.length||1); }
-function worstDelta(vals,ds){ const d=deltaVals(vals,ds); return d.length?Math.min.apply(null,d):0; }
-function signed(n,dec){ const neg=n<0; return (neg?"−":"+")+Math.abs(n).toFixed(dec); }
+// average of the axis scores → letter band
+function avgVal(vals){ if(!vals.length) return 0; let s=0; for(const v of vals) s+=Math.max(0,Math.min(10,v)); return s/vals.length; }
+function minVal(vals){ return vals.length?Math.min.apply(null,vals):0; }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v10";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v11";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9","climateHavenRadars_v10"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
@@ -297,7 +307,7 @@ function renderTable(){
     hr.appendChild(th);
   });
   tbl.appendChild(hr);
-  // rows — the table always shows the ABSOLUTE 0-10 grades (the editable source of truth)
+  // rows — locked shows LETTER grades; unlocked shows the raw 0-10 for editing
   ds.params.forEach((p,pi)=>{
     const tr=document.createElement("tr");
     const lab=document.createElement("td"); lab.className="rowlabel";
@@ -307,75 +317,38 @@ function renderTable(){
     tr.appendChild(lab);
     ds.cities.forEach((c,ci)=>{
       const td=document.createElement("td");
-      const v=c.values[pi], cls=(v>=8?" hi":(v<=3?" lo":""))+(c.hidden?" colhidden":""), dis=locked?" disabled":"";
-      td.innerHTML=`<input class="cell${cls}" type="number" min="0" max="10" step="1" value="${v}"${dis}`+
-        ` onchange="setVal(${ci},${pi},this.value)">`;
+      const v=c.values[pi], g=grade(v), hid=c.hidden?" colhidden":"";
+      if(locked){
+        td.innerHTML=`<div class="gcell g${g}${hid}">${g}</div>`;
+      } else {
+        td.innerHTML=`<input class="cell g${g}${hid}" type="number" min="0" max="10" step="1" value="${v}"`+
+          ` onchange="setVal(${ci},${pi},this.value)">`;
+      }
       tr.appendChild(td);
     });
     tbl.appendChild(tr);
   });
 
-  if(isDelta){
-    // Row 1: overall average delta vs Logan
-    const ar=document.createElement("tr"); ar.className="blendrow";
-    const al=document.createElement("td"); al.className="blendlbl"; al.textContent="Overall · avg Δ vs Logan"; ar.appendChild(al);
-    ds.cities.forEach((c,ci)=>{
-      const td=document.createElement("td");
-      if(isBaseline(ci,ds)){ td.className="blendval base"+(c.hidden?" colhidden":""); td.textContent="0.0"; }
-      else{ const a=avgDelta(c.values,ds);
-        td.className="blendval"+(a>=1?" hi":(a<=-1?" lo":""))+(c.hidden?" colhidden":""); td.textContent=signed(a,1); }
-      ar.appendChild(td);
-    });
-    tbl.appendChild(ar);
-    // Row 2: worst single axis vs Logan — the dealbreaker detector
-    const br=document.createElement("tr"); br.className="blendrow";
-    const bl=document.createElement("td"); bl.className="blendlbl"; bl.textContent="Worst axis vs Logan"; br.appendChild(bl);
-    ds.cities.forEach((c,ci)=>{
-      const td=document.createElement("td");
-      if(isBaseline(ci,ds)){ td.className="blendval base"+(c.hidden?" colhidden":""); td.textContent="—"; }
-      else{ const w=worstDelta(c.values,ds);
-        td.className="blendval"+(w>=0?" hi":(w<=-3?" lo":""))+(c.hidden?" colhidden":""); td.textContent=signed(w,0); }
-      br.appendChild(td);
-    });
-    tbl.appendChild(br);
-  } else {
-    // absolute mode — average percentile + radar-area balance
-    const ar=document.createElement("tr"); ar.className="blendrow";
-    const al=document.createElement("td"); al.className="blendlbl"; al.textContent="Overall · avg percentile"; ar.appendChild(al);
-    ds.cities.forEach(c=>{ const a=avgGrade(c.values);
-      const td=document.createElement("td"); td.className="blendval"+(a>=8?" hi":(a<=3?" lo":""))+(c.hidden?" colhidden":"");
-      td.textContent=a.toFixed(1); ar.appendChild(td); });
-    tbl.appendChild(ar);
-    const br=document.createElement("tr"); br.className="blendrow";
-    const bl=document.createElement("td"); bl.className="blendlbl"; bl.textContent="Balance · radar area"; br.appendChild(bl);
-    ds.cities.forEach(c=>{ const b=blendedGrade(c.values);
-      const td=document.createElement("td"); td.className="blendval"+(b>=8?" hi":(b<=3?" lo":""))+(c.hidden?" colhidden":"");
-      td.textContent=b.toFixed(1); br.appendChild(td); });
-    tbl.appendChild(br);
-  }
+  // summary: Overall grade (avg) + Weakest axis grade — letters, both view modes
+  const ar=document.createElement("tr"); ar.className="blendrow";
+  const al=document.createElement("td"); al.className="blendlbl"; al.textContent="Overall grade"; ar.appendChild(al);
+  ds.cities.forEach(c=>{ const g=grade(avgVal(c.values));
+    const td=document.createElement("td"); td.className="blendval g"+g+(c.hidden?" colhidden":""); td.textContent=g; ar.appendChild(td); });
+  tbl.appendChild(ar);
+  const br=document.createElement("tr"); br.className="blendrow";
+  const bl=document.createElement("td"); bl.className="blendlbl"; bl.textContent="Weakest axis"; br.appendChild(bl);
+  ds.cities.forEach(c=>{ const g=grade(minVal(c.values));
+    const td=document.createElement("td"); td.className="blendval g"+g+(c.hidden?" colhidden":""); td.textContent=g; br.appendChild(td); });
+  tbl.appendChild(br);
 
   // lock UI state
   const lb=document.getElementById("lockBtn"); if(lb) lb.textContent=locked?"🔓 Unlock editing":"🔒 Lock";
   const ec=document.getElementById("editctrls"); if(ec) ec.style.display=locked?"none":"contents";
   const bn=document.getElementById("lockBanner");
   if(bn) bn.textContent=locked
-    ? "Locked — grades are read-only so nobody changes them by accident. The table always shows absolute 0–10 grades; the chart follows the view toggle."
-    : "Editing unlocked — changes save to this browser only. Grades stay absolute 0–10; the Δ view is computed from them. Use Export to keep a copy.";
+    ? "Locked — grades show as letters (A best … F worst) and are read-only. Unlock to edit the raw 0–10 behind them. The chart follows the view toggle."
+    : "Editing unlocked — cells show the raw 0–10 scores; changes save to this browser only. Grades letter A–F is just how they display when locked. Use Export to keep a copy.";
 }
-
-// area-based blended score, remapped to a linear 0-10 (absolute mode only).
-function blendedGrade(vals){
-  const N=vals.length; if(N<3) return 0;
-  let sum=0;
-  for(let i=0;i<N;i++){
-    const a=Math.max(0,Math.min(10,vals[i])), b=Math.max(0,Math.min(10,vals[(i+1)%N]));
-    sum+=a*b;
-  }
-  return 10*Math.sqrt(Math.max(0,sum/(100*N)));
-}
-// straight average of the axis percentiles (absolute mode only)
-function avgGrade(vals){ if(!vals.length) return 0; let s=0;
-  for(const v of vals) s+=Math.max(0,Math.min(10,v)); return s/vals.length; }
 
 function polygonPoints(vals,cx,cy,R,N){
   let pts=[];
@@ -461,8 +434,8 @@ function renderChart(){
   // scale hint
   const sh=document.getElementById("scalehint");
   if(sh) sh.textContent=isDelta
-    ? "Bold ring = Logan (your baseline). Each step out ≈ +2 vs Logan, each step in ≈ −2; outer edge = +5, center = −5. Vertices numbered clockwise from top."
-    : "Rings mark 2 / 4 / 6 / 8 / 10  •  vertices numbered clockwise from top.";
+    ? "Bold ring = Logan (your baseline). Each ring step ≈ one letter grade vs Logan — out = better, in = worse. Vertices numbered clockwise from top."
+    : "Rings run F (center) · D · C · B · A (outer edge). Vertices numbered clockwise from top.";
 
   // legend (click to focus/morph, double-click to show all)
   const lg=document.getElementById("legend"); lg.innerHTML="";
