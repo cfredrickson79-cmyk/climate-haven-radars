@@ -89,12 +89,14 @@
 <body>
 <header>
   <h1>Climate Haven Radars</h1>
-  <div class="sub">Two star charts for the move decision, scored on an <b>absolute national scale</b> &mdash; each grade &asymp; a
-  <b>percentile</b> among viable US family-raising places (a 7 &asymp; better than ~70% of them). Two summary rows: <b>Overall</b>
-  = average percentile; <b>Balance</b> = radar area, which punishes any single terrible axis. Grades are <b>locked</b>; hit
-  <b>Unlock editing</b> to change values or add a city. <b>Click a numbered vertex</b> to pop its label. <b>Click a city in the
-  legend</b> to isolate its star; click another to <b>morph</b> between them; <b>double-click</b> to show all. Use the checkbox by
-  each city to <b>hide</b> it. Cells shade <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
+  <div class="sub">Five radars for the move decision &mdash; <b>Comfort&nbsp;2030s</b>, <b>Comfort&nbsp;2040s</b>, <b>Economic</b>,
+  <b>Accessibility</b>, <b>Safety</b> &mdash; scored on an <b>absolute national scale</b>: each grade &asymp; a <b>percentile</b>
+  among viable US family-raising places (a 7 &asymp; better than ~70% of them). Compare the two Comfort tabs to spot places that
+  fade by the 2040s. Two summary rows: <b>Overall</b> = average percentile; <b>Balance</b> = radar area, which punishes any single
+  terrible axis. Grades are <b>locked</b>; hit <b>Unlock editing</b> to change values or add a city. <b>Click a numbered vertex</b>
+  for its label; <b>click a city in the legend</b> to isolate its star, click another to <b>morph</b>, <b>double-click</b> to show
+  all; the checkbox by each city <b>hides</b> it. Cells shade
+  <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
   <span style="background:#fbe0e0;padding:0 4px;border-radius:3px">red at 3&minus;</span>. Higher is always better.</div>
 </header>
 
@@ -140,59 +142,82 @@ const PALETTE = ["#005f73","#9b2226","#0a9396","#ca6702","#3d348b","#588157",
 
 /* ---------- default data ---------- */
 function defaults(){
+  const META=[
+    {name:"Logan, UT",                     url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                      color:"#005f73"},
+    {name:"Pittsburgh (Cranberry Twp, PA)",url:"https://en.wikipedia.org/wiki/Cranberry_Township,_Butler_County,_Pennsylvania", color:"#9b2226"},
+    {name:"Madison, WI",                   url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                               color:"#ca6702"},
+    {name:"Johnson City, TN",              url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                          color:"#588157"},
+    {name:"Charlottesville, VA",           url:"https://en.wikipedia.org/wiki/Charlottesville,_Virginia",                        color:"#3d348b"},
+    {name:"Roanoke, VA",                   url:"https://en.wikipedia.org/wiki/Roanoke,_Virginia",                               color:"#7209b7"},
+    {name:"Fayetteville, AR",              url:"https://en.wikipedia.org/wiki/Fayetteville,_Arkansas",                          color:"#bc6c25"}
+  ];
+  const mk=rows=>META.map((m,i)=>({name:m.name,url:m.url,color:m.color,values:rows[i].slice()}));
+  const SCALE="Scored on an ABSOLUTE national scale — each grade ≈ a percentile among viable US family-raising places "+
+    "(safe water/food, low violent crime, no real wildfire or chronic flood/hurricane risk); a 7 ≈ better than ~70% of them, "+
+    "so a score doesn't shift when cities are added or removed. ";
   return {
-    comfort:{
-      label:"Comfort & Experience",
-      note:"Scored on an ABSOLUTE national scale: each grade ≈ a percentile among viable US family-raising places "+
-           "(safe water/food, low violent crime, no real wildfire or chronic flood/hurricane risk). A 7 ≈ better than "+
-           "~70% of those places, so a score doesn't shift when cities are added or removed. \"Pittsburgh (Cranberry "+
-           "Twp)\" scores that specific Butler County suburb, not the city. Allergy uses AAFA national ranks (AAFA 2026 "+
-           "moved Madison to ~median). Water = kayak-to-jet-ski access within ~1 hr. Higher is better.",
-      params:["Expected Sunny Days","Storm Safety (Tornado/Wind)","Flooding Resilience",
-              "Heat / Fire / Smoke Safety","Allergy Resilience","Water Access (kayak → jet ski, ≤1 hr)"],
-      cities:[
-        {name:"Logan, UT",                    url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                       color:"#005f73", values:[9,10,6,1,1,5]},
-        {name:"Pittsburgh (Cranberry Twp, PA)",url:"https://en.wikipedia.org/wiki/Cranberry_Township,_Butler_County,_Pennsylvania",  color:"#9b2226", values:[2,7,8,6,2,8]},
-        {name:"Madison, WI",                  url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                                color:"#ca6702", values:[4,5,4,6,5,10]},
-        {name:"Johnson City, TN",             url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                           color:"#588157", values:[5,5,3,6,3,8]}
-      ]
+    comfort2030:{
+      label:"Comfort · 2030s",
+      note:SCALE+"Present-day comfort. Every axis: higher = more pleasant — Winter Mildness high means milder winters, "+
+        "Humidity Comfort high means drier, Allergy Resilience high means less pollen (AAFA 2026 ranks). Compare this radar "+
+        "to Comfort · 2040s to see which places hold up.",
+      params:["Summer Heat Comfort","Winter Mildness","Humidity Comfort","Sunshine","Allergy Resilience"],
+      cities:mk([[6,3,9,8,1],[7,4,5,2,2],[8,2,5,4,5],[5,6,4,5,2],[5,7,5,6,1],[6,6,6,6,2],[4,6,4,6,4]])
     },
-    financials:{
-      label:"Financials",
-      note:"Scored on the same ABSOLUTE national scale (percentile among viable US family places) for a CASH home "+
-           "purchase — no mortgage. Home Purchase Price is the sticker cash outlay; Home Carrying Cost blends property "+
-           "tax, insurance, utilities and maintenance on a paid-off house. State Income Tax reflects a remote earner; "+
-           "Retirement Tax-Friendliness reflects retired parents. Tennessee's no-income-tax status anchors the top of "+
-           "the tax axes. Researched Aug 2026; higher = more favorable.",
+    comfort2040:{
+      label:"Comfort · 2040s",
+      note:SCALE+"The same five comfort axes on the ~2045 trajectory: warming raises heat and humidity burden (worst in the "+
+        "South), lengthens allergy seasons, and softens winters. Where a city's 2040s star is SMALLER than its 2030s star, "+
+        "its comfort is eroding — the 'happy now but not later' test.",
+      params:["Summer Heat Comfort","Winter Mildness","Humidity Comfort","Sunshine","Allergy Resilience"],
+      cities:mk([[5,4,8,8,1],[6,5,4,2,2],[7,3,4,4,4],[4,7,3,5,1],[4,7,4,6,1],[5,7,5,6,1],[3,7,3,6,3]])
+    },
+    economic:{
+      label:"Economic",
+      note:SCALE+"Present-day economics for a CASH home purchase (no mortgage): Purchase Price is the sticker cash outlay; "+
+        "Carrying Cost blends property tax, insurance, utilities and maintenance on a paid-off house. Income Tax reflects a "+
+        "remote earner; Retirement Tax reflects retired parents. Tennessee's no-income-tax status anchors the tax axes.",
       params:["Home Purchase Price (lower cost)","Home Carrying Cost (lower cost)","Overall Cost of Living",
               "State Income Tax (lower burden)","Retirement Tax-Friendliness"],
-      cities:[
-        {name:"Logan, UT",                    url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                       color:"#005f73", values:[5,9,4,6,2]},
-        {name:"Pittsburgh (Cranberry Twp, PA)",url:"https://en.wikipedia.org/wiki/Cranberry_Township,_Butler_County,_Pennsylvania",  color:"#9b2226", values:[4,4,6,7,6]},
-        {name:"Madison, WI",                  url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                                color:"#ca6702", values:[4,2,3,4,6]},
-        {name:"Johnson City, TN",             url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                           color:"#588157", values:[8,9,8,10,10]}
-      ]
+      cities:mk([[5,9,4,6,2],[4,4,6,7,6],[4,2,3,4,6],[8,9,8,10,10],[3,6,5,5,6],[8,5,4,5,6],[5,6,5,7,7]])
+    },
+    accessibility:{
+      label:"Accessibility",
+      note:SCALE+"Access to what a family uses: boatable water within ~1 hr (kayak → jet ski), K-12 plus higher-ed strength, "+
+        "hospital quality/proximity, a well-connected airport, and walkable neighborhoods with parks and trails.",
+      params:["Water Recreation","Education","Healthcare","Airport Proximity","Walkability & Parks"],
+      cities:mk([[8,6,4,4,5],[8,9,10,9,5],[9,8,9,7,8],[9,5,4,4,4],[5,9,9,5,8],[8,6,7,5,6],[8,7,6,7,6]])
+    },
+    safety:{
+      label:"Safety",
+      note:SCALE+"Hazard exposure through ~2045: freedom from wildfire and smoke, clean air (low PM2.5/ozone, no winter "+
+        "inversions), freedom from flooding, freedom from tornado/severe-storm/hurricane, and long-term water & food security "+
+        "(drought resilience) — the climate-haven core. Higher = safer.",
+      params:["Fire / Smoke Safety","Air Quality","Flood Safety","Storm / Tornado Safety","Water & Food Security"],
+      cities:mk([[3,2,6,10,2],[7,4,8,7,9],[6,8,4,5,9],[6,7,4,5,8],[7,7,6,7,8],[6,9,5,7,8],[6,7,6,3,6]])
     }
   };
 }
 
-let DATA, active="comfort", locked=true;
-let openLabels={comfort:new Set(), financials:new Set()};
+let DATA, active="comfort2030", locked=true;
+let openLabels={};
 let focusIndex=null;   // index of the single city being shown, or null = all
 let morph=null;        // {vals:[...], color:"..."} during an animated morph frame
 let morphRAF=null;
 let legTimer=null;
-const TABS=[["comfort","Comfort & Experience"],["financials","Financials"]];
+const TABS=[["comfort2030","Comfort · 2030s"],["comfort2040","Comfort · 2040s"],["economic","Economic"],
+            ["accessibility","Accessibility"],["safety","Safety"]];
+function initOpenLabels(){ TABS.forEach(([k])=>{ if(!openLabels[k]) openLabels[k]=new Set(); }); }
 function toggleLabel(i){ const s=openLabels[active]; if(s.has(i))s.delete(i); else s.add(i); renderChart(); }
 function toggleLock(){ locked=!locked; renderAll(); }
 function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v6";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v7";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
-  try{ const s=localStorage.getItem(STORE_KEY); if(s) return JSON.parse(s); }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
@@ -455,7 +480,7 @@ function exportJSON(){
   a.download="climate-haven-radars-data.json"; a.click(); URL.revokeObjectURL(a.href);
 }
 function importJSON(inp){ const f=inp.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.comfort&&d.financials){DATA=d;openLabels={comfort:new Set(),financials:new Set()};showAll();renderAll();}
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.comfort2030&&d.safety){DATA=d;openLabels={};initOpenLabels();showAll();renderAll();}
     else alert("That file doesn't look like a radars export."); }catch(e){alert("Could not read that file.");} };
   r.readAsText(f); inp.value=""; }
 
@@ -490,7 +515,7 @@ function downloadPNG(){
       lx+=w; });
     URL.revokeObjectURL(url);
     canvas.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b);
-      a.download=(active==="comfort"?"comfort-experience":"financials")+"-radar.png"; a.click();
+      a.download=active+"-radar.png"; a.click();
       URL.revokeObjectURL(a.href); });
   };
   img.onerror=()=>{ URL.revokeObjectURL(url); alert("PNG export failed in this browser — try Chrome or Edge."); };
@@ -508,6 +533,7 @@ function lerpHex(a,b,t){const A=hex2rgb(a),B=hex2rgb(b);
 
 /* ---------- boot ---------- */
 DATA=load();
+initOpenLabels();
 renderAll();
 </script>
 </body>
