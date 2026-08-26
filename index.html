@@ -89,11 +89,12 @@
 <body>
 <header>
   <h1>Climate Haven Radars</h1>
-  <div class="sub">Two star charts for the move decision, scored for a <b>permanent (last) move</b> &mdash; a 20+&nbsp;year
-  horizon. Grades are <b>locked</b> so nobody nudges them by accident; hit <b>Unlock editing</b> to change values or add a
-  city. <b>Click a numbered vertex</b> to pop its label. <b>Click a city in the legend</b> to isolate its star; click another to
-  <b>morph</b> between them; <b>double-click</b> to show all again. Use the checkbox by each city to <b>hide</b> it from the
-  chart. Cells shade <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
+  <div class="sub">Two star charts for the move decision, scored on an <b>absolute national scale</b> &mdash; each grade &asymp; a
+  <b>percentile</b> among viable US family-raising places (a 7 &asymp; better than ~70% of them). Two summary rows: <b>Overall</b>
+  = average percentile; <b>Balance</b> = radar area, which punishes any single terrible axis. Grades are <b>locked</b>; hit
+  <b>Unlock editing</b> to change values or add a city. <b>Click a numbered vertex</b> to pop its label. <b>Click a city in the
+  legend</b> to isolate its star; click another to <b>morph</b> between them; <b>double-click</b> to show all. Use the checkbox by
+  each city to <b>hide</b> it. Cells shade <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
   <span style="background:#fbe0e0;padding:0 4px;border-radius:3px">red at 3&minus;</span>. Higher is always better.</div>
 </header>
 
@@ -142,38 +143,38 @@ function defaults(){
   return {
     comfort:{
       label:"Comfort & Experience",
-      note:"Scored for a permanent (last) move — a 20+ year horizon (raise kids, then age in place), blending today's "+
-           "climate with the ~2045 trajectory. Allergy uses general-population pollen rankings (AAFA); water is "+
-           "kayak-to-jet-ski access within ~1 hour. Note: Logan's allergy score is the general figure — Cameron's own "+
-           "history flags Cache Valley (peak in June) as a personal negative, while the humid eastern/TN cities are an "+
-           "unknown for him. Unlock to add rows; each new city/row starts at 5. Higher is better.",
+      note:"Scored on an ABSOLUTE national scale: each grade ≈ a percentile among viable US family-raising places "+
+           "(safe water/food, low violent crime, no real wildfire or chronic flood/hurricane risk). A 7 ≈ better than "+
+           "~70% of those places, so a score doesn't shift when cities are added or removed. \"Pittsburgh (Cranberry "+
+           "Twp)\" scores that specific Butler County suburb, not the city. Allergy uses AAFA national ranks (AAFA 2026 "+
+           "moved Madison to ~median). Water = kayak-to-jet-ski access within ~1 hr. Higher is better.",
       params:["Expected Sunny Days","Storm Safety (Tornado/Wind)","Flooding Resilience",
               "Heat / Fire / Smoke Safety","Allergy Resilience","Water Access (kayak → jet ski, ≤1 hr)"],
       cities:[
-        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                 color:"#005f73", values:[8,9,5,4,4,6]},
-        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[3,4,3,6,6,7]},
-        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",          color:"#0a9396", values:[4,8,5,7,2,9]},
-        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",           color:"#ca6702", values:[6,5,4,6,9,10]},
-        {name:"Knoxville, TN",       url:"https://en.wikipedia.org/wiki/Knoxville,_Tennessee",         color:"#3d348b", values:[6,6,5,5,3,9]},
-        {name:"Johnson City, TN",    url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",      color:"#588157", values:[5,6,4,6,4,8]}
+        {name:"Logan, UT",                    url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                       color:"#005f73", values:[9,10,6,1,1,5]},
+        {name:"Pittsburgh (Cranberry Twp, PA)",url:"https://en.wikipedia.org/wiki/Cranberry_Township,_Butler_County,_Pennsylvania",  color:"#9b2226", values:[2,7,8,6,2,8]},
+        {name:"Rochester, NY",                url:"https://en.wikipedia.org/wiki/Rochester,_New_York",                               color:"#0a9396", values:[1,8,5,8,0,9]},
+        {name:"Madison, WI",                  url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                                color:"#ca6702", values:[4,5,4,6,5,10]},
+        {name:"Knoxville, TN",                url:"https://en.wikipedia.org/wiki/Knoxville,_Tennessee",                              color:"#3d348b", values:[5,4,3,4,2,9]},
+        {name:"Johnson City, TN",             url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                           color:"#588157", values:[5,5,3,6,3,8]}
       ]
     },
     financials:{
       label:"Financials",
-      note:"Scored for buying the home in CASH (no mortgage). Home Purchase Price is the sticker cash outlay (lower = "+
-           "better). Home Carrying Cost blends property tax, insurance, utilities and maintenance on a paid-off house "+
-           "(lower = better). State Income Tax reflects a remote earner; Retirement Tax-Friendliness reflects retired "+
-           "parents. Tennessee has no state income tax and doesn't tax retirement income (both = 10). Researched Aug 2026; "+
-           "higher = more favorable.",
+      note:"Scored on the same ABSOLUTE national scale (percentile among viable US family places) for a CASH home "+
+           "purchase — no mortgage. Home Purchase Price is the sticker cash outlay; Home Carrying Cost blends property "+
+           "tax, insurance, utilities and maintenance on a paid-off house. State Income Tax reflects a remote earner; "+
+           "Retirement Tax-Friendliness reflects retired parents. Tennessee's no-income-tax status anchors the top of "+
+           "the tax axes. Researched Aug 2026; higher = more favorable.",
       params:["Home Purchase Price (lower cost)","Home Carrying Cost (lower cost)","Overall Cost of Living",
               "State Income Tax (lower burden)","Retirement Tax-Friendliness"],
       cities:[
-        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                 color:"#005f73", values:[5,9,6,7,3]},
-        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[9,8,6,8,8]},
-        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",          color:"#0a9396", values:[8,6,6,3,5]},
-        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",           color:"#ca6702", values:[4,3,7,5,7]},
-        {name:"Knoxville, TN",       url:"https://en.wikipedia.org/wiki/Knoxville,_Tennessee",         color:"#3d348b", values:[6,7,8,10,10]},
-        {name:"Johnson City, TN",    url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",      color:"#588157", values:[9,8,8,10,10]}
+        {name:"Logan, UT",                    url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                       color:"#005f73", values:[5,9,4,6,2]},
+        {name:"Pittsburgh (Cranberry Twp, PA)",url:"https://en.wikipedia.org/wiki/Cranberry_Township,_Butler_County,_Pennsylvania",  color:"#9b2226", values:[4,4,6,7,6]},
+        {name:"Rochester, NY",                url:"https://en.wikipedia.org/wiki/Rochester,_New_York",                               color:"#0a9396", values:[7,1,4,1,4]},
+        {name:"Madison, WI",                  url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                                color:"#ca6702", values:[4,2,3,4,6]},
+        {name:"Knoxville, TN",                url:"https://en.wikipedia.org/wiki/Knoxville,_Tennessee",                              color:"#3d348b", values:[6,9,7,10,10]},
+        {name:"Johnson City, TN",             url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                           color:"#588157", values:[8,9,8,10,10]}
       ]
     }
   };
@@ -191,11 +192,11 @@ function toggleLock(){ locked=!locked; renderAll(); }
 function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v4";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v5";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s) return JSON.parse(s); }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
@@ -250,10 +251,20 @@ function renderTable(){
     });
     tbl.appendChild(tr);
   });
-  // blended (radar-area) row
+  // overall (average percentile) row — headline score
+  const ar=document.createElement("tr"); ar.className="blendrow";
+  const al=document.createElement("td"); al.className="blendlbl";
+  al.textContent="Overall · avg percentile"; ar.appendChild(al);
+  ds.cities.forEach(c=>{
+    const a=avgGrade(c.values);
+    const td=document.createElement("td"); td.className="blendval"+(a>=8?" hi":(a<=3?" lo":""))+(c.hidden?" colhidden":"");
+    td.textContent=a.toFixed(1); ar.appendChild(td);
+  });
+  tbl.appendChild(ar);
+  // balance (radar-area) row — penalizes a single terrible axis
   const br=document.createElement("tr"); br.className="blendrow";
   const bl=document.createElement("td"); bl.className="blendlbl";
-  bl.textContent="Blended · radar area"; br.appendChild(bl);
+  bl.textContent="Balance · radar area"; br.appendChild(bl);
   ds.cities.forEach(c=>{
     const b=blendedGrade(c.values);
     const td=document.createElement("td"); td.className="blendval"+(b>=8?" hi":(b<=3?" lo":""))+(c.hidden?" colhidden":"");
@@ -279,6 +290,10 @@ function blendedGrade(vals){
   }
   return 10*Math.sqrt(Math.max(0,sum/(100*N)));
 }
+
+// straight average of the axis percentiles — reads directly as an overall percentile
+function avgGrade(vals){ if(!vals.length) return 0; let s=0;
+  for(const v of vals) s+=Math.max(0,Math.min(10,v)); return s/vals.length; }
 
 function polygonPoints(vals,cx,cy,R,N){
   let pts=[];
