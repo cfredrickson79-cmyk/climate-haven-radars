@@ -35,8 +35,14 @@
   th.city{background:#eef2f5;padding:4px 6px;min-width:78px}
   .cityhead{display:flex;align-items:center;gap:5px;justify-content:center}
   .swatch{width:11px;height:11px;border-radius:3px;flex:0 0 auto;border:1px solid rgba(0,0,0,.15)}
+  .citylink{color:var(--accent);text-decoration:none;font-weight:700;font-size:12px;padding:0 1px}
+  .citylink:hover{text-decoration:underline}
+  input.cell:disabled{color:var(--ink);-webkit-text-fill-color:var(--ink);opacity:1;cursor:default}
+  input.cname:read-only,input.pname:read-only{cursor:default}
   input.cell{width:100%;border:none;background:transparent;text-align:center;font-size:13px;
     padding:7px 2px;color:var(--ink);font-variant-numeric:tabular-nums}
+  input.cell.hi{background:#d9f2df}
+  input.cell.lo{background:#fbe0e0}
   input.cell:focus{outline:2px solid var(--accent);outline-offset:-2px;background:#f0fbfc}
   input.pname{border:none;background:transparent;font-size:12.5px;padding:6px 8px;width:100%;
     text-align:left;color:var(--ink);font-weight:600}
@@ -57,6 +63,10 @@
   .blendrow td,.blendrow th{background:#eaf4f6;font-weight:800}
   .blendlbl{padding:7px 8px;text-align:left;color:var(--accent);font-size:12.5px}
   .blendval{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;padding:7px 2px}
+  td.blendval.hi{background:#c9ecd2}
+  td.blendval.lo{background:#f6d6d6}
+  .lockbtn{background:#eef2f5}
+  .lockbanner{font-size:12px;color:var(--muted);margin:10px 0 0}
   .legend{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:6px;font-size:12.5px}
   .legend .item{display:flex;align-items:center;gap:6px}
   .axiskey{margin-top:10px;font-size:12px;color:var(--muted);width:100%;max-width:440px;
@@ -70,10 +80,13 @@
 <body>
 <header>
   <h1>Climate Haven Radars</h1>
-  <div class="sub">Two star charts for the move decision. Edit any grade (0&ndash;10), rename a
-  parameter, or add / remove a city &mdash; the chart redraws instantly. <b>Click a numbered vertex</b> to
-  pop its full label; click again to hide it. The <b>Blended</b> row scores each city by its radar area.
-  Higher is always better. Use <b>Download PNG</b> to drop a chart into a Google Doc.</div>
+  <div class="sub">Two star charts for the move decision. Grades are <b>locked</b> so nobody nudges them by
+  accident &mdash; hit <b>Unlock editing</b> to change values or add a city. <b>Click a numbered vertex</b>
+  to pop its full label; <b>click a city name</b> to open an overview. Cells shade
+  <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
+  <span style="background:#fbe0e0;padding:0 4px;border-radius:3px">red at 3&minus;</span>. The
+  <b>Blended</b> row scores each city by its radar area. Higher is always better. Use
+  <b>Download PNG</b> to drop a chart into a Google Doc.</div>
 </header>
 
 <div class="tabs" id="tabs"></div>
@@ -83,13 +96,17 @@
       <div class="panel-title" id="tableTitle"></div>
       <div style="overflow-x:auto"><table id="grid"></table></div>
       <div class="btnrow">
-        <button class="act" onclick="addCity()">+ Add city</button>
-        <button class="act" onclick="addParam()">+ Add parameter</button>
-        <button class="act" onclick="resetActive()">Reset this radar</button>
+        <button class="act lockbtn" id="lockBtn" onclick="toggleLock()"></button>
+        <span id="editctrls" style="display:contents">
+          <button class="act" onclick="addCity()">+ Add city</button>
+          <button class="act" onclick="addParam()">+ Add parameter</button>
+          <button class="act" onclick="resetActive()">Reset this radar</button>
+          <button class="act" onclick="document.getElementById('imp').click()">Import data</button>
+        </span>
         <button class="act" onclick="exportJSON()">Export data (JSON)</button>
-        <button class="act" onclick="document.getElementById('imp').click()">Import data</button>
         <input id="imp" type="file" accept="application/json" style="display:none" onchange="importJSON(this)">
       </div>
+      <div class="lockbanner" id="lockBanner"></div>
       <div class="note" id="note"></div>
     </div>
     <div class="chartcol">
@@ -115,46 +132,49 @@ function defaults(){
   return {
     comfort:{
       label:"Comfort & Experience",
-      note:"Climate axes come from your data file. Water Access is a directional ESTIMATE — edit it, or "+
-           "ask me to verify it. Add rows anytime (recreation, winter mildness, space); each new "+
-           "city/row starts at 5. Higher is better.",
+      note:"Climate axes are from your data file. Water Access is researched (Aug 2026) — reservoirs / "+
+           "lakes / rivers with kayak-to-jet-ski access within ~1 hour. Unlock to add rows "+
+           "(recreation, winter mildness, space); each new city/row starts at 5. Higher is better.",
       params:["Expected Sunny Days","Storm Safety (Tornado/Wind)","Flooding Resilience",
               "Heat / Fire / Smoke Safety","Allergy Resilience","Water Access (kayak → jet ski, ≤1 hr)"],
       cities:[
-        {name:"Logan, UT",            color:"#005f73", values:[9,9,6,3,2,7]},
-        {name:"Pittsburgh Sub., PA",  color:"#9b2226", values:[3,7,5,9,8,7]},
-        {name:"Rochester, NY",        color:"#0a9396", values:[2,9,8,9,7,9]},
-        {name:"Madison, WI",          color:"#ca6702", values:[5,5,6,8,4,9]}
+        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                color:"#005f73", values:[9,9,6,3,2,8]},
+        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[3,7,5,9,8,7]},
+        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",         color:"#0a9396", values:[2,9,8,9,7,9]},
+        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",          color:"#ca6702", values:[5,5,6,8,4,9]}
       ]
     },
     financials:{
       label:"Financials",
-      note:"⚠ Only Housing Affordability is from your file. The tax / retirement / job rows are "+
-           "directional ESTIMATES — edit them, or ask me to run a real research pass to fill "+
-           "verified numbers. Higher = more favorable overall.",
+      note:"Researched Aug 2026 from 2026 tax, property-tax, cost-of-living and labor data. Housing "+
+           "Affordability is your file's value. Tax / property rows reflect city & county reality, not "+
+           "just state averages (e.g. Rochester & Pittsburgh property taxes run ~2.4–2.5%). Higher = "+
+           "more favorable.",
       params:["Housing Affordability","Overall Cost of Living","State Income Tax (lower burden)",
               "Property Taxes (lower burden)","Retirement Tax-Friendliness","Job / Income Market"],
       cities:[
-        {name:"Logan, UT",            color:"#005f73", values:[5,6,6,8,5,5]},
-        {name:"Pittsburgh Sub., PA",  color:"#9b2226", values:[8,7,8,4,9,7]},
-        {name:"Rochester, NY",        color:"#0a9396", values:[8,7,4,3,6,6]},
-        {name:"Madison, WI",          color:"#ca6702", values:[5,5,5,4,5,8]}
+        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                color:"#005f73", values:[5,6,6,9,5,6]},
+        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[8,8,8,3,9,7]},
+        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",         color:"#0a9396", values:[8,5,4,2,6,6]},
+        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",          color:"#ca6702", values:[5,5,5,4,5,8]}
       ]
     }
   };
 }
 
-let DATA, active="comfort";
+let DATA, active="comfort", locked=true;
 let openLabels={comfort:new Set(), financials:new Set()};
 const TABS=[["comfort","Comfort & Experience"],["financials","Financials"]];
 function toggleLabel(i){ const s=openLabels[active]; if(s.has(i))s.delete(i); else s.add(i); renderChart(); }
+function toggleLock(){ locked=!locked; renderAll(); }
+function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v2";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v3";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s) return JSON.parse(s); }catch(e){}
-  try{ localStorage.removeItem("climateHavenRadars"); }catch(e){}  // clear the pre-v2 cache
+  try{ localStorage.removeItem("climateHavenRadars"); localStorage.removeItem("climateHavenRadars_v2"); }catch(e){}  // clear older caches
   return defaults();
 }
 
@@ -181,9 +201,12 @@ function renderTable(){
   hr.innerHTML='<th class="corner">Parameter \\ City</th>';
   ds.cities.forEach((c,ci)=>{
     const th=document.createElement("th"); th.className="city";
+    const roC=locked?" readonly":"";
+    const rmC=locked?"":`<span class="x" title="Remove city" onclick="removeCity(${ci})">&times;</span>`;
     th.innerHTML=`<div class="cityhead"><span class="swatch" style="background:${c.color}"></span>`+
-      `<input class="cname" value="${escAttr(c.name)}" onchange="setCityName(${ci},this.value)">`+
-      `<span class="x" title="Remove city" onclick="removeCity(${ci})">&times;</span></div>`;
+      `<input class="cname"${roC} value="${escAttr(c.name)}" onchange="setCityName(${ci},this.value)">`+
+      `<a class="citylink" href="${escAttr(cityLink(c))}" target="_blank" rel="noopener" title="Open an overview of ${escAttr(c.name)}">&#8599;</a>`+
+      rmC+`</div>`;
     hr.appendChild(th);
   });
   tbl.appendChild(hr);
@@ -191,12 +214,14 @@ function renderTable(){
   ds.params.forEach((p,pi)=>{
     const tr=document.createElement("tr");
     const lab=document.createElement("td"); lab.className="rowlabel";
-    lab.innerHTML=`<span class="x" title="Remove parameter" onclick="removeParam(${pi})">&times;</span>`+
-      `<input class="pname" value="${escAttr(p)}" onchange="setParamName(${pi},this.value)">`;
+    const roP=locked?" readonly":"";
+    const rmP=locked?"":`<span class="x" title="Remove parameter" onclick="removeParam(${pi})">&times;</span>`;
+    lab.innerHTML=rmP+`<input class="pname"${roP} value="${escAttr(p)}" onchange="setParamName(${pi},this.value)">`;
     tr.appendChild(lab);
     ds.cities.forEach((c,ci)=>{
       const td=document.createElement("td");
-      td.innerHTML=`<input class="cell" type="number" min="0" max="10" step="1" value="${c.values[pi]}"`+
+      const v=c.values[pi], cls=v>=8?" hi":(v<=3?" lo":""), dis=locked?" disabled":"";
+      td.innerHTML=`<input class="cell${cls}" type="number" min="0" max="10" step="1" value="${v}"${dis}`+
         ` onchange="setVal(${ci},${pi},this.value)">`;
       tr.appendChild(td);
     });
@@ -207,10 +232,18 @@ function renderTable(){
   const bl=document.createElement("td"); bl.className="blendlbl";
   bl.textContent="Blended · radar area"; br.appendChild(bl);
   ds.cities.forEach(c=>{
-    const td=document.createElement("td"); td.className="blendval";
-    td.textContent=blendedGrade(c.values).toFixed(1); br.appendChild(td);
+    const b=blendedGrade(c.values);
+    const td=document.createElement("td"); td.className="blendval"+(b>=8?" hi":(b<=3?" lo":""));
+    td.textContent=b.toFixed(1); br.appendChild(td);
   });
   tbl.appendChild(br);
+  // lock UI state
+  const lb=document.getElementById("lockBtn"); if(lb) lb.textContent=locked?"🔓 Unlock editing":"🔒 Lock";
+  const ec=document.getElementById("editctrls"); if(ec) ec.style.display=locked?"none":"contents";
+  const bn=document.getElementById("lockBanner");
+  if(bn) bn.textContent=locked
+    ? "Locked — grades are read-only so nobody changes them by accident. City-name links still work."
+    : "Editing unlocked — changes save to this browser only. Use Export to keep a copy.";
 }
 
 // area-based blended score, remapped to a linear 0-10.
@@ -307,7 +340,7 @@ function renderAll(){ renderTabs(); renderTable(); renderChart(); save(); }
 
 /* ---------- edits ---------- */
 function setVal(ci,pi,v){ let n=parseFloat(v); if(isNaN(n))n=0; n=Math.max(0,Math.min(10,n));
-  DATA[active].cities[ci].values[pi]=n; renderChart(); save(); }
+  DATA[active].cities[ci].values[pi]=n; renderAll(); }
 function setCityName(ci,v){ DATA[active].cities[ci].name=v||("City "+(ci+1)); renderAll(); }
 function setParamName(pi,v){ DATA[active].params[pi]=v||("Param "+(pi+1)); renderAll(); }
 function removeCity(ci){ const ds=DATA[active]; if(ds.cities.length<=1){alert("Keep at least one city.");return;}
