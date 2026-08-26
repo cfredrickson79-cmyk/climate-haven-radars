@@ -32,8 +32,10 @@
   table{border-collapse:collapse;width:100%;font-size:13px}
   th,td{border:1px solid var(--line);padding:0;text-align:center}
   th.corner{background:#eef2f5;text-align:left;padding:6px 8px;font-weight:700;color:var(--muted);min-width:112px}
-  th.city{background:#eef2f5;padding:4px 6px;min-width:78px}
-  .cityhead{display:flex;align-items:center;gap:5px;justify-content:center}
+  th.city{background:#eef2f5;padding:4px 6px;min-width:82px}
+  th.city.colhidden{opacity:.5}
+  .cityhead{display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap}
+  .vis{margin:0;cursor:pointer;flex:0 0 auto}
   .swatch{width:11px;height:11px;border-radius:3px;flex:0 0 auto;border:1px solid rgba(0,0,0,.15)}
   .citylink{color:var(--accent);text-decoration:none;font-weight:700;font-size:12px;padding:0 1px}
   .citylink:hover{text-decoration:underline}
@@ -43,10 +45,11 @@
     padding:7px 2px;color:var(--ink);font-variant-numeric:tabular-nums}
   input.cell.hi{background:#d9f2df}
   input.cell.lo{background:#fbe0e0}
+  input.cell.colhidden{opacity:.4}
   input.cell:focus{outline:2px solid var(--accent);outline-offset:-2px;background:#f0fbfc}
   input.pname{border:none;background:transparent;font-size:12.5px;padding:6px 8px;width:100%;
     text-align:left;color:var(--ink);font-weight:600}
-  input.cname{border:none;background:transparent;font-size:12.5px;padding:2px;width:70px;
+  input.cname{border:none;background:transparent;font-size:12.5px;padding:2px;width:76px;
     text-align:center;font-weight:700;color:var(--ink)}
   input:focus{outline:2px solid var(--accent);outline-offset:-2px}
   .rowlabel{background:#f7f9fb;display:flex;align-items:center;gap:2px}
@@ -63,12 +66,18 @@
   .blendrow td,.blendrow th{background:#eaf4f6;font-weight:800}
   .blendlbl{padding:7px 8px;text-align:left;color:var(--accent);font-size:12.5px}
   .blendval{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;padding:7px 2px}
+  .blendval.colhidden{opacity:.4}
   td.blendval.hi{background:#c9ecd2}
   td.blendval.lo{background:#f6d6d6}
   .lockbtn{background:#eef2f5}
   .lockbanner{font-size:12px;color:var(--muted);margin:10px 0 0}
-  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:6px;font-size:12.5px}
-  .legend .item{display:flex;align-items:center;gap:6px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:8px;font-size:12.5px}
+  .legend .item{display:flex;align-items:center;gap:6px;padding:2px 6px;border-radius:6px;border:1px solid transparent}
+  .legend .item.clickable{cursor:pointer}
+  .legend .item.clickable:hover{border-color:var(--line);background:#f4f8fa}
+  .legend .item.litem-focus{border-color:var(--accent);background:#eaf4f6;font-weight:700}
+  .legend .item.litem-hidden{opacity:.42;text-decoration:line-through}
+  .focushint{font-size:11.5px;color:var(--muted);margin-top:7px;text-align:center;max-width:440px}
   .axiskey{margin-top:10px;font-size:12px;color:var(--muted);width:100%;max-width:440px;
     display:grid;grid-template-columns:1fr 1fr;gap:2px 14px}
   .axiskey b{color:var(--ink)}
@@ -80,13 +89,12 @@
 <body>
 <header>
   <h1>Climate Haven Radars</h1>
-  <div class="sub">Two star charts for the move decision. Grades are <b>locked</b> so nobody nudges them by
-  accident &mdash; hit <b>Unlock editing</b> to change values or add a city. <b>Click a numbered vertex</b>
-  to pop its full label; <b>click a city name</b> to open an overview. Cells shade
-  <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
-  <span style="background:#fbe0e0;padding:0 4px;border-radius:3px">red at 3&minus;</span>. The
-  <b>Blended</b> row scores each city by its radar area. Higher is always better. Use
-  <b>Download PNG</b> to drop a chart into a Google Doc.</div>
+  <div class="sub">Two star charts for the move decision, scored for a <b>permanent (last) move</b> &mdash; a 20+&nbsp;year
+  horizon. Grades are <b>locked</b> so nobody nudges them by accident; hit <b>Unlock editing</b> to change values or add a
+  city. <b>Click a numbered vertex</b> to pop its label. <b>Click a city in the legend</b> to isolate its star; click another to
+  <b>morph</b> between them; <b>double-click</b> to show all again. Use the checkbox by each city to <b>hide</b> it from the
+  chart. Cells shade <span style="background:#d9f2df;padding:0 4px;border-radius:3px">green at 8+</span> and
+  <span style="background:#fbe0e0;padding:0 4px;border-radius:3px">red at 3&minus;</span>. Higher is always better.</div>
 </header>
 
 <div class="tabs" id="tabs"></div>
@@ -114,8 +122,10 @@
       <svg class="radar" id="svg" viewBox="0 0 520 470" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="scalehint">Rings mark 2 / 4 / 6 / 8 / 10 &nbsp;&bull;&nbsp; vertices numbered clockwise from top</div>
       <div class="legend" id="legend"></div>
+      <div class="focushint" id="focushint"></div>
       <div class="axiskey" id="axiskey"></div>
       <div class="btnrow" style="justify-content:center">
+        <button class="act" id="showAllBtn" onclick="showAll()" style="display:none">Show all cities</button>
         <button class="primary" onclick="downloadPNG()">Download PNG</button>
       </div>
     </div>
@@ -132,31 +142,38 @@ function defaults(){
   return {
     comfort:{
       label:"Comfort & Experience",
-      note:"Climate axes are from your data file. Water Access is researched (Aug 2026) — reservoirs / "+
-           "lakes / rivers with kayak-to-jet-ski access within ~1 hour. Unlock to add rows "+
-           "(recreation, winter mildness, space); each new city/row starts at 5. Higher is better.",
+      note:"Scored for a permanent (last) move — a 20+ year horizon (raise kids, then age in place), blending today's "+
+           "climate with the ~2045 trajectory. Allergy uses general-population pollen rankings (AAFA); water is "+
+           "kayak-to-jet-ski access within ~1 hour. Note: Logan's allergy score is the general figure — Cameron's own "+
+           "history flags Cache Valley (peak in June) as a personal negative, while the humid eastern/TN cities are an "+
+           "unknown for him. Unlock to add rows; each new city/row starts at 5. Higher is better.",
       params:["Expected Sunny Days","Storm Safety (Tornado/Wind)","Flooding Resilience",
               "Heat / Fire / Smoke Safety","Allergy Resilience","Water Access (kayak → jet ski, ≤1 hr)"],
       cities:[
-        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                color:"#005f73", values:[9,9,6,3,2,8]},
-        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[3,7,5,9,8,7]},
-        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",         color:"#0a9396", values:[2,9,8,9,7,9]},
-        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",          color:"#ca6702", values:[5,5,6,8,4,9]}
+        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                 color:"#005f73", values:[8,9,5,4,4,6]},
+        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[3,4,3,6,6,7]},
+        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",          color:"#0a9396", values:[4,8,5,7,2,9]},
+        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",           color:"#ca6702", values:[6,5,4,6,9,10]},
+        {name:"Knoxville, TN",       url:"https://en.wikipedia.org/wiki/Knoxville,_Tennessee",         color:"#3d348b", values:[6,6,5,5,3,9]},
+        {name:"Johnson City, TN",    url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",      color:"#588157", values:[5,6,4,6,4,8]}
       ]
     },
     financials:{
       label:"Financials",
-      note:"Researched Aug 2026 from 2026 tax, property-tax, cost-of-living and labor data. Housing "+
-           "Affordability is your file's value. Tax / property rows reflect city & county reality, not "+
-           "just state averages (e.g. Rochester & Pittsburgh property taxes run ~2.4–2.5%). Higher = "+
-           "more favorable.",
-      params:["Housing Affordability","Overall Cost of Living","State Income Tax (lower burden)",
-              "Property Taxes (lower burden)","Retirement Tax-Friendliness","Job / Income Market"],
+      note:"Scored for buying the home in CASH (no mortgage). Home Purchase Price is the sticker cash outlay (lower = "+
+           "better). Home Carrying Cost blends property tax, insurance, utilities and maintenance on a paid-off house "+
+           "(lower = better). State Income Tax reflects a remote earner; Retirement Tax-Friendliness reflects retired "+
+           "parents. Tennessee has no state income tax and doesn't tax retirement income (both = 10). Researched Aug 2026; "+
+           "higher = more favorable.",
+      params:["Home Purchase Price (lower cost)","Home Carrying Cost (lower cost)","Overall Cost of Living",
+              "State Income Tax (lower burden)","Retirement Tax-Friendliness"],
       cities:[
-        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                color:"#005f73", values:[5,6,6,9,5,6]},
-        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[8,8,8,3,9,7]},
-        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",         color:"#0a9396", values:[8,5,4,2,6,6]},
-        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",          color:"#ca6702", values:[5,5,5,4,5,8]}
+        {name:"Logan, UT",           url:"https://en.wikipedia.org/wiki/Logan,_Utah",                 color:"#005f73", values:[5,9,6,7,3]},
+        {name:"Pittsburgh Sub., PA", url:"https://en.wikipedia.org/wiki/Pittsburgh_metropolitan_area", color:"#9b2226", values:[9,8,6,8,8]},
+        {name:"Rochester, NY",       url:"https://en.wikipedia.org/wiki/Rochester,_New_York",          color:"#0a9396", values:[8,6,6,3,5]},
+        {name:"Madison, WI",         url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",           color:"#ca6702", values:[4,3,7,5,7]},
+        {name:"Knoxville, TN",       url:"https://en.wikipedia.org/wiki/Knoxville,_Tennessee",         color:"#3d348b", values:[6,7,8,10,10]},
+        {name:"Johnson City, TN",    url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",      color:"#588157", values:[9,8,8,10,10]}
       ]
     }
   };
@@ -164,17 +181,21 @@ function defaults(){
 
 let DATA, active="comfort", locked=true;
 let openLabels={comfort:new Set(), financials:new Set()};
+let focusIndex=null;   // index of the single city being shown, or null = all
+let morph=null;        // {vals:[...], color:"..."} during an animated morph frame
+let morphRAF=null;
+let legTimer=null;
 const TABS=[["comfort","Comfort & Experience"],["financials","Financials"]];
 function toggleLabel(i){ const s=openLabels[active]; if(s.has(i))s.delete(i); else s.add(i); renderChart(); }
 function toggleLock(){ locked=!locked; renderAll(); }
 function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v3";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v4";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s) return JSON.parse(s); }catch(e){}
-  try{ localStorage.removeItem("climateHavenRadars"); localStorage.removeItem("climateHavenRadars_v2"); }catch(e){}  // clear older caches
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
@@ -184,7 +205,7 @@ function renderTabs(){
   TABS.forEach(([k,lbl])=>{
     const d=document.createElement("div");
     d.className="tab"+(k===active?" active":""); d.textContent=lbl;
-    d.onclick=()=>{active=k; renderAll();};
+    d.onclick=()=>{active=k; showAll(); renderAll();};
     t.appendChild(d);
   });
 }
@@ -200,10 +221,12 @@ function renderTable(){
   const hr=document.createElement("tr");
   hr.innerHTML='<th class="corner">Parameter \\ City</th>';
   ds.cities.forEach((c,ci)=>{
-    const th=document.createElement("th"); th.className="city";
+    const th=document.createElement("th"); th.className="city"+(c.hidden?" colhidden":"");
     const roC=locked?" readonly":"";
     const rmC=locked?"":`<span class="x" title="Remove city" onclick="removeCity(${ci})">&times;</span>`;
-    th.innerHTML=`<div class="cityhead"><span class="swatch" style="background:${c.color}"></span>`+
+    th.innerHTML=`<div class="cityhead">`+
+      `<input type="checkbox" class="vis" ${c.hidden?"":"checked"} title="Show on chart" onchange="toggleHidden(${ci})">`+
+      `<span class="swatch" style="background:${c.color}"></span>`+
       `<input class="cname"${roC} value="${escAttr(c.name)}" onchange="setCityName(${ci},this.value)">`+
       `<a class="citylink" href="${escAttr(cityLink(c))}" target="_blank" rel="noopener" title="Open an overview of ${escAttr(c.name)}">&#8599;</a>`+
       rmC+`</div>`;
@@ -220,7 +243,7 @@ function renderTable(){
     tr.appendChild(lab);
     ds.cities.forEach((c,ci)=>{
       const td=document.createElement("td");
-      const v=c.values[pi], cls=v>=8?" hi":(v<=3?" lo":""), dis=locked?" disabled":"";
+      const v=c.values[pi], cls=(v>=8?" hi":(v<=3?" lo":""))+(c.hidden?" colhidden":""), dis=locked?" disabled":"";
       td.innerHTML=`<input class="cell${cls}" type="number" min="0" max="10" step="1" value="${v}"${dis}`+
         ` onchange="setVal(${ci},${pi},this.value)">`;
       tr.appendChild(td);
@@ -233,7 +256,7 @@ function renderTable(){
   bl.textContent="Blended · radar area"; br.appendChild(bl);
   ds.cities.forEach(c=>{
     const b=blendedGrade(c.values);
-    const td=document.createElement("td"); td.className="blendval"+(b>=8?" hi":(b<=3?" lo":""));
+    const td=document.createElement("td"); td.className="blendval"+(b>=8?" hi":(b<=3?" lo":""))+(c.hidden?" colhidden":"");
     td.textContent=b.toFixed(1); br.appendChild(td);
   });
   tbl.appendChild(br);
@@ -242,14 +265,11 @@ function renderTable(){
   const ec=document.getElementById("editctrls"); if(ec) ec.style.display=locked?"none":"contents";
   const bn=document.getElementById("lockBanner");
   if(bn) bn.textContent=locked
-    ? "Locked — grades are read-only so nobody changes them by accident. City-name links still work."
+    ? "Locked — grades are read-only so nobody changes them by accident. City-name links, hide checkboxes, and the legend still work."
     : "Editing unlocked — changes save to this browser only. Use Export to keep a copy.";
 }
 
 // area-based blended score, remapped to a linear 0-10.
-// Radar area is proportional to sum of v[i]*v[i+1]; the sqrt linearizes it so a uniform
-// city scores its uniform value. Rewards well-rounded profiles (spiky ones enclose less
-// area) and depends on axis order.
 function blendedGrade(vals){
   const N=vals.length; if(N<3) return 0;
   let sum=0;
@@ -268,6 +288,15 @@ function polygonPoints(vals,cx,cy,R,N){
     pts.push([cx+r*Math.cos(a), cy+r*Math.sin(a)]);
   }
   return pts;
+}
+
+function drawCityPolygon(vals,color,cx,cy,R,N){
+  const pts=polygonPoints(vals,cx,cy,R,N).map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  let s=`<polygon points="${pts}" fill="${color}" fill-opacity="0.14" stroke="${color}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  polygonPoints(vals,cx,cy,R,N).forEach(p=>{
+    s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${color}"/>`;
+  });
+  return s;
 }
 
 function renderChart(){
@@ -289,14 +318,15 @@ function renderChart(){
     const ex=cx+R*Math.cos(a), ey=cy+R*Math.sin(a);
     s+=`<line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
   }
-  // city polygons (under the vertex markers)
-  ds.cities.forEach(c=>{
-    const pts=polygonPoints(c.values,cx,cy,R,N).map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
-    s+=`<polygon points="${pts}" fill="${c.color}" fill-opacity="0.14" stroke="${c.color}" stroke-width="2.2" stroke-linejoin="round"/>`;
-    polygonPoints(c.values,cx,cy,R,N).forEach(p=>{
-      s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${c.color}"/>`;
-    });
-  });
+  // city polygons
+  if(focusIndex!==null && ds.cities[focusIndex]){
+    const c=ds.cities[focusIndex];
+    const vals=morph?morph.vals:c.values;
+    const color=morph?morph.color:c.color;
+    s+=drawCityPolygon(vals,color,cx,cy,R,N);
+  } else {
+    ds.cities.forEach(c=>{ if(c.hidden) return; s+=drawCityPolygon(c.values,c.color,cx,cy,R,N); });
+  }
   // numbered vertices — clickable, on top of the polygons
   for(let i=0;i<N;i++){
     const a=(-90+i*360/N)*Math.PI/180;
@@ -321,13 +351,28 @@ function renderChart(){
   }
   svg.innerHTML=s;
 
-  // legend
+  // legend (click to focus/morph, double-click to show all)
   const lg=document.getElementById("legend"); lg.innerHTML="";
-  ds.cities.forEach(c=>{
-    const d=document.createElement("div"); d.className="item";
+  ds.cities.forEach((c,ci)=>{
+    const d=document.createElement("div");
+    d.className="item"+(c.hidden?" litem-hidden":(ci===focusIndex?" litem-focus clickable":" clickable"));
     d.innerHTML=`<span class="swatch" style="background:${c.color}"></span>${escHtml(c.name)}`;
+    if(!c.hidden){
+      d.onclick=()=>legendClick(ci);
+      d.ondblclick=()=>legendDbl(ci);
+    }
     lg.appendChild(d);
   });
+  // focus hint + show-all button
+  const fh=document.getElementById("focushint");
+  const sab=document.getElementById("showAllBtn");
+  if(focusIndex!==null && ds.cities[focusIndex]){
+    if(fh) fh.textContent="Showing "+ds.cities[focusIndex].name+" only — click another legend city to morph, or double-click any city (or “Show all cities”) to overlay them.";
+    if(sab) sab.style.display="";
+  } else {
+    if(fh) fh.textContent="Click a legend city to isolate its star; click another to morph between them; double-click to show all.";
+    if(sab) sab.style.display="none";
+  }
   // axis key
   const ak=document.getElementById("axiskey"); ak.innerHTML="";
   ds.params.forEach((p,i)=>{
@@ -338,22 +383,59 @@ function renderChart(){
 
 function renderAll(){ renderTabs(); renderTable(); renderChart(); save(); }
 
+/* ---------- focus / morph ---------- */
+function legendClick(ci){
+  if(DATA[active].cities[ci].hidden) return;
+  if(legTimer) return;                 // a dblclick is in progress
+  legTimer=setTimeout(()=>{
+    legTimer=null;
+    if(focusIndex===null) enterFocus(ci);
+    else if(ci!==focusIndex) morphTo(ci);
+  }, 240);
+}
+function legendDbl(ci){ if(legTimer){clearTimeout(legTimer); legTimer=null;} showAll(); }
+function enterFocus(ci){ stopMorph(); focusIndex=ci; morph=null; renderChart(); }
+function showAll(){ stopMorph(); focusIndex=null; morph=null; renderChart(); }
+function stopMorph(){ if(morphRAF){ cancelAnimationFrame(morphRAF); morphRAF=null; } morph=null; }
+function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+function morphTo(toIdx){
+  const ds=DATA[active];
+  if(!ds.cities[focusIndex]||!ds.cities[toIdx]) { enterFocus(toIdx); return; }
+  stopMorph();
+  const from=ds.cities[focusIndex].values.slice();
+  const to=ds.cities[toIdx].values;
+  const fromCol=ds.cities[focusIndex].color, toCol=ds.cities[toIdx].color;
+  const dur=560, t0=performance.now();
+  function frame(now){
+    let t=Math.min(1,(now-t0)/dur); const e=easeInOut(t);
+    const vals=from.map((v,i)=>v+((to[i]!==undefined?to[i]:v)-v)*e);
+    morph={vals, color:lerpHex(fromCol,toCol,e)};
+    renderChart();
+    if(t<1){ morphRAF=requestAnimationFrame(frame); }
+    else { morphRAF=null; morph=null; focusIndex=toIdx; renderChart(); }
+  }
+  morphRAF=requestAnimationFrame(frame);
+}
+
 /* ---------- edits ---------- */
 function setVal(ci,pi,v){ let n=parseFloat(v); if(isNaN(n))n=0; n=Math.max(0,Math.min(10,n));
   DATA[active].cities[ci].values[pi]=n; renderAll(); }
 function setCityName(ci,v){ DATA[active].cities[ci].name=v||("City "+(ci+1)); renderAll(); }
 function setParamName(pi,v){ DATA[active].params[pi]=v||("Param "+(pi+1)); renderAll(); }
+function toggleHidden(ci){ const c=DATA[active].cities[ci]; c.hidden=!c.hidden;
+  if(c.hidden && focusIndex===ci){ stopMorph(); focusIndex=null; }
+  renderAll(); }
 function removeCity(ci){ const ds=DATA[active]; if(ds.cities.length<=1){alert("Keep at least one city.");return;}
-  ds.cities.splice(ci,1); renderAll(); }
+  ds.cities.splice(ci,1); showAll(); renderAll(); }
 function removeParam(pi){ const ds=DATA[active]; if(ds.params.length<=3){alert("A radar needs at least 3 axes.");return;}
   ds.params.splice(pi,1); ds.cities.forEach(c=>c.values.splice(pi,1)); openLabels[active].clear(); renderAll(); }
 function addCity(){ const ds=DATA[active]; const name=prompt("New city name:","New City"); if(name===null)return;
   const color=PALETTE[ds.cities.length%PALETTE.length];
-  ds.cities.push({name:name||"New City",color,values:ds.params.map(()=>5)}); renderAll(); }
+  ds.cities.push({name:name||"New City",color,values:ds.params.map(()=>5)}); showAll(); renderAll(); }
 function addParam(){ const ds=DATA[active]; const name=prompt("New parameter name:","New Parameter"); if(name===null)return;
   ds.params.push(name||"New Parameter"); ds.cities.forEach(c=>c.values.push(5)); renderAll(); }
 function resetActive(){ if(!confirm("Reset this radar to its starting data?"))return;
-  DATA[active]=defaults()[active]; openLabels[active].clear(); renderAll(); }
+  DATA[active]=defaults()[active]; openLabels[active].clear(); showAll(); renderAll(); }
 
 /* ---------- import / export ---------- */
 function exportJSON(){
@@ -362,7 +444,7 @@ function exportJSON(){
   a.download="climate-haven-radars-data.json"; a.click(); URL.revokeObjectURL(a.href);
 }
 function importJSON(inp){ const f=inp.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.comfort&&d.financials){DATA=d;openLabels={comfort:new Set(),financials:new Set()};renderAll();}
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.comfort&&d.financials){DATA=d;openLabels={comfort:new Set(),financials:new Set()};showAll();renderAll();}
     else alert("That file doesn't look like a radars export."); }catch(e){alert("Could not read that file.");} };
   r.readAsText(f); inp.value=""; }
 
@@ -385,11 +467,11 @@ function downloadPNG(){
     // title
     ctx.fillStyle="#1c2733"; ctx.font="700 17px sans-serif"; ctx.textAlign="center";
     ctx.fillText(DATA[active].label, W/2, H+22);
-    // legend
+    // legend (only what's shown on the chart)
     const ds=DATA[active]; ctx.font="12px sans-serif";
-    const items=ds.cities.map(c=>c.name); let lx=24, ly=H+46;
-    ctx.textAlign="left";
-    items.forEach((nm,i)=>{ const c=ds.cities[i];
+    const shown = (focusIndex!==null && ds.cities[focusIndex]) ? [ds.cities[focusIndex]] : ds.cities.filter(c=>!c.hidden);
+    let lx=24, ly=H+46; ctx.textAlign="left";
+    shown.forEach(c=>{ const nm=c.name;
       const w=ctx.measureText(nm).width+22;
       if(lx+w>W-16){lx=24;ly+=18;}
       ctx.fillStyle=c.color; ctx.fillRect(lx,ly-9,11,11);
@@ -407,6 +489,11 @@ function downloadPNG(){
 /* ---------- helpers ---------- */
 function escAttr(s){return String(s).replace(/"/g,"&quot;");}
 function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function hex2rgb(h){h=String(h).replace('#','');if(h.length===3){h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];}
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function lerpHex(a,b,t){const A=hex2rgb(a),B=hex2rgb(b);
+  const r=Math.round(A[0]+(B[0]-A[0])*t),g=Math.round(A[1]+(B[1]-A[1])*t),bl=Math.round(A[2]+(B[2]-A[2])*t);
+  return `rgb(${r},${g},${bl})`;}
 
 /* ---------- boot ---------- */
 DATA=load();
