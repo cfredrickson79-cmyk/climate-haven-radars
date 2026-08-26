@@ -148,8 +148,7 @@ function defaults(){
     {name:"Madison, WI",                   url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                               color:"#ca6702"},
     {name:"Johnson City, TN",              url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                          color:"#588157"},
     {name:"Charlottesville, VA",           url:"https://en.wikipedia.org/wiki/Charlottesville,_Virginia",                        color:"#3d348b"},
-    {name:"Roanoke, VA",                   url:"https://en.wikipedia.org/wiki/Roanoke,_Virginia",                               color:"#7209b7"},
-    {name:"Fayetteville, AR",              url:"https://en.wikipedia.org/wiki/Fayetteville,_Arkansas",                          color:"#bc6c25"}
+    {name:"Roanoke, VA",                   url:"https://en.wikipedia.org/wiki/Roanoke,_Virginia",                               color:"#7209b7"}
   ];
   const mk=rows=>META.map((m,i)=>({name:m.name,url:m.url,color:m.color,values:rows[i].slice()}));
   const SCALE="Scored on an ABSOLUTE national scale — each grade ≈ a percentile among viable US family-raising places "+
@@ -165,7 +164,7 @@ function defaults(){
         "Comfort · 2040s to see which places hold up. (The Economic/Accessibility/Safety radars use an absolute national "+
         "percentile, where 5 = the median viable place.)",
       params:["Summer Heat Comfort","Winter Mildness","Humidity (moderate = ideal)","Sunshine","Allergy Resilience"],
-      cities:mk([[8,4,5,9,3],[7,5,7,3,4],[8,3,7,5,6],[6,8,5,6,3],[7,9,8,7,4],[8,8,7,7,4],[5,8,5,8,5]])
+      cities:mk([[8,4,5,9,3],[7,5,7,3,4],[8,3,7,5,6],[6,8,5,6,3],[7,9,8,7,4],[8,8,7,7,4]])
     },
     comfort2040:{
       label:"Comfort · 2040s",
@@ -173,7 +172,7 @@ function defaults(){
         "and Humidity comfort (most in the South) and lengthens allergy season, while softening winters. Where a city's 2040s "+
         "star is SMALLER than its 2030s star, its comfort is eroding — the 'happy now but not later' test.",
       params:["Summer Heat Comfort","Winter Mildness","Humidity (moderate = ideal)","Sunshine","Allergy Resilience"],
-      cities:mk([[7,5,5,9,3],[6,6,6,3,4],[7,4,6,5,5],[5,9,4,6,2],[6,9,7,7,3],[7,8,6,7,3],[4,8,4,8,4]])
+      cities:mk([[7,5,5,9,3],[6,6,6,3,4],[7,4,6,5,5],[5,9,4,6,2],[6,9,7,7,3],[7,8,6,7,3]])
     },
     economic:{
       label:"Economic",
@@ -182,14 +181,14 @@ function defaults(){
         "remote earner; Retirement Tax reflects retired parents. Tennessee's no-income-tax status anchors the tax axes.",
       params:["Home Purchase Price (lower cost)","Home Carrying Cost (lower cost)","Overall Cost of Living",
               "State Income Tax (lower burden)","Retirement Tax-Friendliness"],
-      cities:mk([[5,9,4,6,2],[4,4,6,7,6],[4,2,3,4,6],[8,9,8,10,10],[3,6,5,5,6],[8,5,4,5,6],[5,6,5,7,7]])
+      cities:mk([[5,9,4,6,2],[4,4,6,7,6],[4,2,3,4,6],[8,9,8,10,10],[3,6,5,5,6],[8,5,4,5,6]])
     },
     accessibility:{
       label:"Accessibility",
       note:SCALE+"Access to what a family uses: boatable water within ~1 hr (kayak → jet ski), K-12 plus higher-ed strength, "+
         "hospital quality/proximity, a well-connected airport, and walkable neighborhoods with parks and trails.",
       params:["Water Recreation","Education","Healthcare","Airport Proximity","Walkability & Parks"],
-      cities:mk([[8,6,4,4,5],[8,9,10,9,5],[9,8,9,7,8],[9,5,4,4,4],[5,9,9,5,8],[8,6,7,5,6],[8,7,6,7,6]])
+      cities:mk([[8,6,4,4,5],[8,9,10,9,5],[9,8,9,7,8],[9,5,4,4,4],[5,9,9,5,8],[8,6,7,5,6]])
     },
     safety:{
       label:"Safety",
@@ -197,7 +196,7 @@ function defaults(){
         "inversions), freedom from flooding, freedom from tornado/severe-storm/hurricane, and long-term water & food security "+
         "(drought resilience) — the climate-haven core. Higher = safer.",
       params:["Fire / Smoke Safety","Air Quality","Flood Safety","Storm / Tornado Safety","Water & Food Security"],
-      cities:mk([[3,2,6,10,2],[7,4,8,7,9],[6,8,4,5,9],[6,7,4,5,8],[7,7,6,7,8],[6,9,5,7,8],[6,7,6,3,6]])
+      cities:mk([[3,2,6,10,2],[7,4,8,7,9],[6,8,4,5,9],[6,7,4,5,8],[7,7,6,7,8],[6,9,5,7,8]])
     }
   };
 }
@@ -216,11 +215,11 @@ function toggleLock(){ locked=!locked; renderAll(); }
 function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v8";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v9";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
