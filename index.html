@@ -100,13 +100,14 @@
 <body>
 <header>
   <h1>Climate Haven Radars</h1>
-  <div class="sub"><b>Logan, UT is the baseline &mdash; where we are now.</b> The default <b>&Delta; vs Logan</b> view puts Logan on the
-  bold center ring; every other city bows <b>outward where it beats Logan</b> and <b>inward where it&rsquo;s worse</b>, one axis at a time,
-  for a family&rsquo;s 30s&ndash;40s (the window when Logan degrades). Grades show as <b>letters A&ndash;F</b> (A best, F worst). Five radars &mdash;
-  <b>Comfort&nbsp;2030s</b>, <b>Comfort&nbsp;2040s</b>, <b>Economic</b>, <b>Accessibility</b>, <b>Safety</b> &mdash; cover safety, outdoor comfort,
-  access (what makes life possible), and amenities (what makes it enjoyable). Compare the two Comfort tabs to spot places that fade by the 2040s.
-  Flip to <b>Absolute</b> for the plain letter grid. Grades are <b>locked</b>; hit <b>Unlock editing</b> to edit the raw 0&ndash;10 or add a city.
-  <b>Click a numbered vertex</b> for its label; <b>click a city in the legend</b> to isolate it, click another to <b>morph</b>, <b>double-click</b> to show all.</div>
+  <div class="sub"><b>Logan, UT is the baseline &mdash; where we&rsquo;ll be if we do nothing.</b> The default <b>&Delta; vs Logan</b> view puts
+  Logan on the bold center ring; every other city bows <b>outward where it beats Logan</b> and <b>inward where it&rsquo;s worse</b>, one axis
+  at a time, for a family&rsquo;s 30s&ndash;40s. Grades are <b>letters A+ &rarr; F</b>, calibrated so the <b>best realistically available</b>
+  option earns an A &mdash; not measured against a fantasy ideal. Five radars &mdash; <b>Comfort&nbsp;2030s</b>, <b>Comfort&nbsp;2040s</b>,
+  <b>Economic</b>, <b>Accessibility</b>, <b>Safety</b> &mdash; cover safety, outdoor comfort, access (what makes life possible), and amenities
+  (what makes it enjoyable). Compare the two Comfort tabs to spot places that fade by the 2040s. Flip to <b>Absolute</b> for the plain grid;
+  <b>Unlock editing</b> to edit the raw 0&ndash;10 or add a city. <b>Click a numbered vertex</b> for its label; <b>click a city in the legend</b>
+  to isolate it, click another to <b>morph</b>, <b>double-click</b> to show all.</div>
 </header>
 
 <div class="tabs" id="tabs"></div>
@@ -155,13 +156,17 @@ const PALETTE = ["#005f73","#9b2226","#0a9396","#ca6702","#3d348b","#588157",
                  "#bc6c25","#4a4e69","#6a040f","#1d3557","#7209b7","#2a9d8f"];
 
 /* ---------- letter grades ----------
-   Underlying data stays 0-10; letters are a display layer.
-   A = 9-10 Â· B = 7-8 Â· C = 5-6 Â· D = 3-4 Â· F = 0-2 */
-function grade(v){ v=Math.max(0,Math.min(10,v)); return v>=9?"A":v>=7?"B":v>=5?"C":v>=3?"D":"F"; }
+   Underlying data stays 0-10; letters are a display layer with +/- resolution.
+   Calibrated so the best realistically available option reaches A.
+   10=A+ 9=A 8=A- 7=B+ 6=B 5=B- 4=C+ 3=C 2=C- 1=D 0=F */
+function grade(v){ v=Math.max(0,Math.min(10,v));
+  return v>=9.5?"A+":v>=8.5?"A":v>=7.5?"A-":v>=6.5?"B+":v>=5.5?"B":v>=4.5?"B-":v>=3.5?"C+":v>=2.5?"C":v>=1.5?"C-":v>=0.5?"D":"F"; }
+function gradeBase(v){ return grade(v).charAt(0); }
 
 /* ---------- default data ----------
-   All scores are ABSOLUTE 0-10 (higher = better). The "vs Logan" delta view is
-   computed at render time from these absolutes, so the stored data never shifts. */
+   All scores are ABSOLUTE 0-10 (higher = better), each city scored on its own
+   evidence and RANKED against Logan (the "do nothing" baseline). The "vs Logan"
+   delta view is computed at render time, so the stored data never shifts. */
 function defaults(){
   const META=[
     {name:"Logan, UT",                     url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                      color:"#005f73"},
@@ -172,28 +177,30 @@ function defaults(){
     {name:"Roanoke, VA",                   url:"https://en.wikipedia.org/wiki/Roanoke,_Virginia",                               color:"#7209b7"}
   ];
   const mk=rows=>META.map((m,i)=>({name:m.name,url:m.url,color:m.color,values:rows[i].slice()}));
-  const DELTA="Default view is Î” vs Logan: Logan sits on the bold center ring (where we are now); each city bows OUTWARD where it "+
-    "beats Logan and INWARD where it's worse, one axis at a time. Grades show as letters A (best) to F (worst); flip to Absolute for "+
-    "the plain letter grid, or unlock to edit the raw 0â€“10. ";
+  const DELTA="Default view is Î” vs Logan: Logan sits on the bold center ring (where we'll be if we do nothing); each city bows OUTWARD "+
+    "where it beats Logan and INWARD where it's worse, one axis at a time. Grades are letters A+ (best) to F (worst), calibrated so the "+
+    "best realistically available option earns an A â€” not against a fantasy ideal. Flip to Absolute for the plain grid, or unlock to edit "+
+    "the raw 0â€“10. ";
   return {
     comfort2030:{
       label:"Comfort Â· 2030s",
-      note:DELTA+"Comfort axes tuned to your ideals: Summer Feels-Like blends heat AND humidity toward a moderate 'Long Beach' sweet "+
-        "spot â€” both desert-dry Logan and muggy Southern summers score lower. Winter Character peaks at 20sâ€“30s WITH snow; lots of "+
-        "sub-20 pulls it down, sub-zero is awful, and NO snow at all is also awful. Sky Balance rewards a roughly even sun/cloud mix "+
-        "that trades off often â€” relentless sun OR weeks of gray both score worse. Four-Season Distinctness rewards four "+
-        "pronounced-but-comfortable seasons. Allergy is on general pollen load (Logan = your personal Cache-Valley June reaction). "+
-        "Compare with Comfort Â· 2040s to see which places hold up.",
+      note:DELTA+"Each city is scored on its OWN data, ranked against Logan. Summer Feels-Like blends heat AND humidity toward a moderate "+
+        "'Long Beach' sweet spot (bone-dry Logan and muggy Southern summers both score lower; Madison's moderate lake-country summer rates "+
+        "best of the six). Winter Character peaks at 20sâ€“30s WITH snow â€” Pittsburgh's mild-snowy winter tops it; Madison's sub-zero snaps "+
+        "sink it. Sky Balance rewards a roughly even sun/cloud mix that trades off often â€” the mid-Atlantic's frontal variety wins, "+
+        "Pittsburgh's gray loses. Four-Season Distinctness favors the VA Blue Ridge's four vivid, comfortable seasons. Allergy is on general "+
+        "pollen load (Madison best; Logan = your personal Cache-Valley June reaction). Compare with Comfort Â· 2040s to see who fades.",
       params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
-      cities:mk([[5,5,5,7,3],[6,7,4,8,3],[6,4,6,7,5],[5,6,6,7,3],[4,6,6,7,3],[5,6,6,7,3]])
+      cities:mk([[4,5,5,5,2],[6,8,3,7,4],[8,3,6,6,6],[5,6,7,8,3],[4,6,8,9,3],[7,7,7,8,3]])
     },
     comfort2040:{
       label:"Comfort Â· 2040s",
-      note:DELTA+"Same axes on the ~2045 trajectory: warming softens Summer Feels-Like (worst in the humid South/TN), thins winter "+
-        "snow (nudging mild places toward the 'no snow' penalty), and blurs Four-Season Distinctness in the South. Where a city's "+
-        "2040s star is SMALLER than its 2030s star, its comfort is eroding â€” the 'happy now but not later' test.",
+      note:DELTA+"Same axes on the ~2045 trajectory: warming softens Summer Feels-Like (worst in the humid South/TN), thins winter snow "+
+        "(nudging mild places toward the 'no snow' penalty), lengthens allergy season, and blurs Four-Season Distinctness in the South. "+
+        "Where a city's 2040s star is SMALLER than its 2030s star, its comfort is eroding â€” the 'happy now but not later' test. Johnson "+
+        "City and Charlottesville fade most; Roanoke and Madison hold up best.",
       params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
-      cities:mk([[4,5,5,7,2],[5,6,4,8,2],[5,5,6,7,4],[4,5,6,6,2],[3,5,6,6,2],[4,5,6,6,2]])
+      cities:mk([[3,5,5,5,2],[5,7,3,7,3],[7,4,6,6,5],[4,5,6,6,2],[3,5,7,7,2],[6,6,7,6,2]])
     },
     economic:{
       label:"Economic",
@@ -227,372 +234,413 @@ function defaults(){
 }
 
 let DATA, active="comfort2030", locked=true;
-let viewMode="delta";  // "delta" (vs Logan) or "absolute"
-let openLabels={};
-let focusIndex=null;   // index of the single city being shown, or null = all
-let morph=null;        // {vals:[...], color:"..."} during an animated morph frame
-let morphRAF=null;
-let legTimer=null;
-const TABS=[["comfort2030","Comfort Â· 2030s"],["comfort2040","Comfort Â· 2040s"],["economic","Economic"],
-            ["accessibility","Accessibility"],["safety","Safety"]];
-function initOpenLabels(){ TABS.forEach(([k])=>{ if(!openLabels[k]) openLabels[k]=new Set(); }); }
-function toggleLabel(i){ const s=openLabels[active]; if(s.has(i))s.delete(i); else s.add(i); renderChart(); }
-function toggleLock(){ locked=!locked; renderAll(); }
-function setView(m){ if(viewMode===m) return; viewMode=m; showAll(); renderAll(); }
-function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
+let viewMode="delta";  // "delta" (vs Logan) or "hœÛÛ]H‚›]Ü[“X™[Ï^ßNÂ›]›Øİ\Ò[™^[[ÈËÈ[™^ÙˆHÚ[™ÛHÚ]H™Z[™ÈÚİÛ‹Üˆ[H[›][Üœ[[ÈËÈİ˜[Î–Ë‹‹—KÛÛÜˆ‹‹‹ˆŸH\š[™È[ˆ[š[X]Y[Üœœ˜[YB›][ÜœQ[[Â›]YÕ[Y\[[Â˜ÛÛœİP”ÏVÖÈ˜ÛÛY›ÜŒÌ‹ÛÛY›Ü0­ÈŒÌÈ—KÈ˜ÛÛY›ÜŒ‹ÛÛY›Ü0­ÈŒÈ—KÈ™XÛÛ›ÛZXÈ‹‘XÛÛ›ÛZXÈ—KˆÈ˜XØÙ\ÜÚXš[]H‹XØÙ\ÜÚXš[]H—KÈœØY™]H‹”ØY™]H—WNÂ™[˜İ[Ûˆ[š]Ü[“X™[Ê
+^ÈP”Ë™›Ü‘XXÚ
 
-/* ---------- baseline (Logan) + delta helpers ---------- */
-function baselineIndex(ds){
-  const i=ds.cities.findIndex(c=>/logan/i.test(c.name));
-  return i>=0 ? i : 0;
-}
-function baselineVals(ds){ const b=ds.cities[baselineIndex(ds)]; return b?b.values:null; }
-function isBaseline(ci,ds){ return ci===baselineIndex(ds); }
-// signed per-axis delta of a city vs Logan
-function deltaVals(vals,ds){
-  const base=baselineVals(ds); if(!base) return vals.map(()=>0);
-  return vals.map((v,i)=> v-(base[i]!==undefined?base[i]:v));
-}
-// values as drawn: absolute 0-10, or delta remapped so Logan=5 (center ring), Â±5 = edges
-function toDisplay(vals,ds){
-  if(viewMode!=="delta") return vals;
-  return deltaVals(vals,ds).map(x=> 5+Math.max(-5,Math.min(5,x)));
-}
-// average of the axis scores â†’ letter band
-function avgVal(vals){ if(!vals.length) return 0; let s=0; for(const v of vals) s+=Math.max(0,Math.min(10,v)); return s/vals.length; }
-function minVal(vals){ return vals.length?Math.min.apply(null,vals):0; }
+Ú×JOOÈYŠ[Ü[“X™[ÖÚ×JHÜ[“X™[ÖÚ×O[™]ÈÙ]
 
-/* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v11";  // bump to invalidate stale saved copies
-function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
-function load(){
-  try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9","climateHavenRadars_v10"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
-  return defaults();
-}
+NÈJNÈB™[˜İ[ÛˆÙÙÛSX™[
+J^ÈÛÛœİÏ[Ü[“X™[ÖØXİ]™WNÈYŠËš\ÊJJ\Ë™[]JJNÈ[ÙHË˜Y
+JNÈ™[™\Ú\
 
-/* ---------- rendering ---------- */
-function renderTabs(){
-  const t=document.getElementById("tabs"); t.innerHTML="";
-  TABS.forEach(([k,lbl])=>{
-    const d=document.createElement("div");
-    d.className="tab"+(k===active?" active":""); d.textContent=lbl;
-    d.onclick=()=>{active=k; showAll(); renderAll();};
-    t.appendChild(d);
-  });
-}
+NÈB™[˜İ[ÛˆÙÙÛSØÚÊ
+^ÈØÚÙYH[ØÚÙYÈ™[™\[
 
-function renderTable(){
-  const ds=DATA[active];
-  const isDelta=viewMode==="delta";
-  document.getElementById("tableTitle").textContent="Grades â€” "+ds.label;
-  document.getElementById("chartTitle").textContent=ds.label+(isDelta?"  Â·  vs Logan":"");
-  document.getElementById("note").innerHTML=ds.note;
+NÈB™[˜İ[ÛˆÙ]šY]ÊJ^ÈYŠšY]Ó[ÙOOO[JH™]\›ÈšY]Ó[ÙO[NÈÚİĞ[
 
-  const tbl=document.getElementById("grid"); tbl.innerHTML="";
-  // header
-  const hr=document.createElement("tr");
-  hr.innerHTML='<th class="corner">Parameter \\ City</th>';
-  ds.cities.forEach((c,ci)=>{
-    const base=isDelta&&isBaseline(ci,ds);
-    const th=document.createElement("th"); th.className="city"+(c.hidden?" colhidden":"")+(base?" baseline":"");
-    const roC=locked?" readonly":"";
-    const rmC=locked?"":`<span class="x" title="Remove city" onclick="removeCity(${ci})">&times;</span>`;
-    th.innerHTML=`<div class="cityhead">`+
-      `<input type="checkbox" class="vis" ${c.hidden?"":"checked"} title="Show on chart" onchange="toggleHidden(${ci})">`+
-      `<span class="swatch" style="background:${c.color}"></span>`+
-      `<input class="cname"${roC} value="${escAttr(c.name)}" onchange="setCityName(${ci},this.value)">`+
-      `<a class="citylink" href="${escAttr(cityLink(c))}" target="_blank" rel="noopener" title="Open an overview of ${escAttr(c.name)}">&#8599;</a>`+
-      rmC+`</div>`+(base?`<div class="basetag">baseline</div>`:``);
-    hr.appendChild(th);
-  });
-  tbl.appendChild(hr);
-  // rows â€” locked shows LETTER grades; unlocked shows the raw 0-10 for editing
-  ds.params.forEach((p,pi)=>{
-    const tr=document.createElement("tr");
-    const lab=document.createElement("td"); lab.className="rowlabel";
-    const roP=locked?" readonly":"";
-    const rmP=locked?"":`<span class="x" title="Remove parameter" onclick="removeParam(${pi})">&times;</span>`;
-    lab.innerHTML=rmP+`<input class="pname"${roP} value="${escAttr(p)}" onchange="setParamName(${pi},this.value)">`;
-    tr.appendChild(lab);
-    ds.cities.forEach((c,ci)=>{
-      const td=document.createElement("td");
-      const v=c.values[pi], g=grade(v), hid=c.hidden?" colhidden":"";
-      if(locked){
-        td.innerHTML=`<div class="gcell g${g}${hid}">${g}</div>`;
-      } else {
-        td.innerHTML=`<input class="cell g${g}${hid}" type="number" min="0" max="10" step="1" value="${v}"`+
-          ` onchange="setVal(${ci},${pi},this.value)">`;
-      }
-      tr.appendChild(td);
-    });
-    tbl.appendChild(tr);
-  });
+NÈ™[™\[
 
-  // summary: Overall grade (avg) + Weakest axis grade â€” letters, both view modes
-  const ar=document.createElement("tr"); ar.className="blendrow";
-  const al=document.createElement("td"); al.className="blendlbl"; al.textContent="Overall grade"; ar.appendChild(al);
-  ds.cities.forEach(c=>{ const g=grade(avgVal(c.values));
-    const td=document.createElement("td"); td.className="blendval g"+g+(c.hidden?" colhidden":""); td.textContent=g; ar.appendChild(td); });
-  tbl.appendChild(ar);
-  const br=document.createElement("tr"); br.className="blendrow";
-  const bl=document.createElement("td"); bl.className="blendlbl"; bl.textContent="Weakest axis"; br.appendChild(bl);
-  ds.cities.forEach(c=>{ const g=grade(minVal(c.values));
-    const td=document.createElement("td"); td.className="blendval g"+g+(c.hidden?" colhidden":""); td.textContent=g; br.appendChild(td); });
-  tbl.appendChild(br);
+NÈB™[˜İ[ÛˆÚ]S[šÊÊ^È™]\›ˆË\›
+šÎ‹ËİİİË™ÛÛÙÛK˜ÛÛKÜÙX\˜ÚÜOHŠÙ[˜ÛÙUT’PÛÛ\Û™[
+Ë›˜[YJÈˆÚ]Hİ™\šY]ÈŠJNÈB‚‹ÊˆKKKKKKKKKH˜\Ù[[™H
+ÙØ[ŠH
+È[H[\œÈKKKKKKKKKH
+‹Â™[˜İ[Ûˆ˜\Ù[[™R[™^
+Ê^ÂˆÛÛœİOYË˜Ú]Y\Ë™š[™[™^
+ÏO‹ÛÙØ[‹ÚK\İ
+Ë›˜[YJJNÂˆ™]\›ˆOLÈHˆÂŸB™[˜İ[Ûˆ˜\Ù[[™U˜[ÊÊ^ÈÛÛœİYË˜Ú]Y\ÖØ˜\Ù[[™R[™^
+ÊWNÈ™]\›ˆØ‹˜[Y\Î›[ÈB™[˜İ[Ûˆ\Ğ˜\Ù[[™JÚKÊ^È™]\›ˆÚOOOX˜\Ù[[™R[™^
+ÊNÈB‹ËÈÚYÛ™Y\‹X^\È[HÙˆHÚ]HœÈÙØ[‚™[˜İ[Ûˆ[U˜[Ê˜[ËÊ^ÂˆÛÛœİ˜\ÙOX˜\Ù[[™U˜[ÊÊNÈYŠX˜\ÙJH™]\›ˆ˜[Ë›X\
 
-  // lock UI state
-  const lb=document.getElementById("lockBtn"); if(lb) lb.textContent=locked?"ğŸ”“ Unlock editing":"ğŸ”’ Lock";
-  const ec=document.getElementById("editctrls"); if(ec) ec.style.display=locked?"none":"contents";
-  const bn=document.getElementById("lockBanner");
-  if(bn) bn.textContent=locked
-    ? "Locked â€” grades show as letters (A best â€¦ F worst) and are read-only. Unlock to edit the raw 0â€“10 behind them. The chart follows the view toggle."
-    : "Editing unlocked â€” cells show the raw 0â€“10 scores; changes save to this browser only. Grades letter Aâ€“F is just how they display when locked. Use Export to keep a copy.";
-}
 
-function polygonPoints(vals,cx,cy,R,N){
-  let pts=[];
-  for(let i=0;i<N;i++){
-    const a=(-90 + i*360/N)*Math.PI/180;
-    const r=(Math.max(0,Math.min(10,vals[i]))/10)*R;
-    pts.push([cx+r*Math.cos(a), cy+r*Math.sin(a)]);
-  }
-  return pts;
-}
+OOŒ
+NÂˆ™]\›ˆ˜[Ë›X\
 
-function drawCityPolygon(vals,color,cx,cy,R,N){
-  const pts=polygonPoints(vals,cx,cy,R,N).map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
-  let s=`<polygon points="${pts}" fill="${color}" fill-opacity="0.14" stroke="${color}" stroke-width="2.2" stroke-linejoin="round"/>`;
-  polygonPoints(vals,cx,cy,R,N).forEach(p=>{
-    s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${color}"/>`;
-  });
-  return s;
-}
+‹JOOˆ‹J˜\ÙVÚWHOO][™Yš[™YØ˜\ÙVÚWNŠJNÂŸB‹ËÈ˜[Y\È\È˜]ÛˆXœÛÛ]HLLÜˆ[H™[X\YÛÈÙØ[MH
+Ù[\ˆš[™ÊK0¬MHHYÙ\Â™[˜İ[ÛˆÑ\Ü^J˜[ËÊ^ÂˆYŠšY]Ó[ÙHOOH™[HŠH™]\›ˆ˜[ÎÂˆ™]\›ˆ[U˜[Ê˜[ËÊK›X\
+OˆJÓX]›X^
+MKX]›Z[ŠK
+JJNÂŸB‹ËÈ]™\˜YÙHÙˆH^\ÈØÛÜ™\È8¡¤ˆ]\ˆ˜[™™[˜İ[Ûˆ]™Õ˜[
+˜[Ê^ÈYŠ]˜[Ë›[™İ
+H™]\›ˆÈ]ÏLÈ›ÜŠÛÛœİˆÙˆ˜[ÊHÊÏSX]›X^
+X]›Z[ŠLŠJNÈ™]\›ˆËİ˜[Ë›[™İÈB‚‹ÊˆKKKKKKKKKH\œÚ\İ[˜ÙHKKKKKKKKKH
+‹Â˜ÛÛœİÕÔ‘WÒÑVOH˜Û[X]R]™[”˜Y\œ×İŒLˆÈËÈ[\È[˜[Y]Hİ[HØ]™YÛÜY\Â™[˜İ[ÛˆØ]™J
+^È^ÈØØ[İÜ˜YÙKœÙ]][JÕÔ‘WÒÑVK”ÓÓ‹œİš[™ÚYJUJJNÈXØ]Ú
+J^ßHB™[˜İ[ÛˆØY
 
-function renderChart(){
-  const ds=DATA[active], N=ds.params.length;
-  const isDelta=viewMode==="delta";
-  const svg=document.getElementById("svg");
-  const cx=260, cy=230, R=150, VBW=520;
-  const open=openLabels[active];
-  let s="";
-  // background rings â€” in delta mode the middle ring (value 5) is Logan's baseline
-  const ringVals=isDelta?[1,3,5,7,9]:[2,4,6,8,10];
-  ringVals.forEach(rv=>{
-    const rr=R*rv/10, isBase=isDelta&&rv===5, pts=[];
-    for(let i=0;i<N;i++){const a=(-90+i*360/N)*Math.PI/180;pts.push((cx+rr*Math.cos(a)).toFixed(1)+","+(cy+rr*Math.sin(a)).toFixed(1));}
-    s+=`<polygon points="${pts.join(' ')}" fill="none" stroke="${isBase?'#1c2733':'var(--grid)'}" stroke-width="${isBase?2:1}"${isBase?' stroke-dasharray="5 4"':''}/>`;
-  });
-  // spokes
-  for(let i=0;i<N;i++){
-    const a=(-90+i*360/N)*Math.PI/180;
-    const ex=cx+R*Math.cos(a), ey=cy+R*Math.sin(a);
-    s+=`<line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
-  }
-  // baseline label at the top of Logan's ring (delta mode)
-  if(isDelta){
-    const ry=cy-R*0.5;
-    s+=`<text x="${cx}" y="${(ry-5).toFixed(1)}" font-size="10.5" font-weight="700" text-anchor="middle" fill="#1c2733">Logan (baseline)</text>`;
-  }
-  // city polygons
-  if(focusIndex!==null && ds.cities[focusIndex]){
-    const c=ds.cities[focusIndex];
-    const rawVals=morph?morph.vals:c.values;
-    const color=morph?morph.color:c.color;
-    s+=drawCityPolygon(toDisplay(rawVals,ds),color,cx,cy,R,N);
-  } else {
-    ds.cities.forEach((c,ci)=>{
-      if(c.hidden) return;
-      if(isDelta && isBaseline(ci,ds)) return;   // Logan IS the ring, not a polygon
-      s+=drawCityPolygon(toDisplay(c.values,ds),c.color,cx,cy,R,N);
-    });
-  }
-  // numbered vertices â€” clickable, on top of the polygons
-  for(let i=0;i<N;i++){
-    const a=(-90+i*360/N)*Math.PI/180;
-    const lx=cx+(R+20)*Math.cos(a), ly=cy+(R+20)*Math.sin(a);
-    s+=`<g style="cursor:pointer" onclick="toggleLabel(${i})">`+
-       `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="11" fill="${open.has(i)?'#005f73':'#eef2f5'}" stroke="var(--line)"/>`+
-       `<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" font-size="13" font-weight="700" text-anchor="middle" fill="${open.has(i)?'#ffffff':'#1c2733'}">${i+1}</text>`+
-       `</g>`;
-  }
-  // popped labels â€” above everything
-  for(let i=0;i<N;i++){
-    if(!open.has(i)) continue;
-    const a=(-90+i*360/N)*Math.PI/180, cos=Math.cos(a);
-    const px=cx+(R+34)*Math.cos(a), py=cy+(R+34)*Math.sin(a);
-    const name=ds.params[i], w=Math.min(300, name.length*6.1+16), h=19;
-    let rx = cos>0.2 ? px-6 : (cos<-0.2 ? px-w+6 : px-w/2);
-    rx=Math.max(3, Math.min(VBW-w-3, rx));
-    s+=`<g pointer-events="none">`+
-       `<rect x="${rx.toFixed(1)}" y="${(py-h/2).toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="5" fill="#ffffff" stroke="var(--line)" stroke-width="1"/>`+
-       `<text x="${(rx+8).toFixed(1)}" y="${(py+4).toFixed(1)}" font-size="11" font-weight="600" fill="#1c2733">${escHtml(name)}</text>`+
-       `</g>`;
-  }
-  svg.innerHTML=s;
+^Âˆ^ÈÛÛœİÏ[ØØ[İÜ˜YÙK™Ù]][JÕÔ‘WÒÑVJNÈYŠÊ^ÈÛÛœİR”ÓÓ‹œ\œÙJÊNÈYŠ	‰™˜ÛÛY›ÜŒÌ	‰™œØY™]JH™]\›ˆÈHXØ]Ú
+J^ßBˆ^ÈÈ˜Û[X]R]™[”˜Y\œÈ‹˜Û[X]R]™[”˜Y\œ×İŒˆ‹˜Û[X]R]™[”˜Y\œ×İŒÈ‹˜Û[X]R]™[”˜Y\œ×İ‹˜Û[X]R]™[”˜Y\œ×İH‹˜Û[X]R]™[”˜Y\œ×İˆ‹˜Û[X]R]™[”˜Y\œ×İÈ‹˜Û[X]R]™[”˜Y\œ×İ‹˜Û[X]R]™[”˜Y\œ×İH‹˜Û[X]R]™[”˜Y\œ×İŒL‹˜Û[X]R]™[”˜Y\œ×İŒLH—K™›Ü‘XXÚ
+ÏO›ØØ[İÜ˜YÙKœ™[[İ™R][JÊJNÈXØ]Ú
+J^ßBˆ™]\›ˆY˜][Ê
+NÂŸB‚‹ÊˆKKKKKKKKKH™[™\š[™ÈKKKKKKKKKH
+‹Â™[˜İ[Ûˆ™[™\•XœÊ
+^ÂˆÛÛœİYØİ[Y[™Ù][[Y[RY
+XœÈŠNÈš[›™\’SHˆÂˆP”Ë™›Ü‘XXÚ
 
-  // scale hint
-  const sh=document.getElementById("scalehint");
-  if(sh) sh.textContent=isDelta
-    ? "Bold ring = Logan (your baseline). Each ring step â‰ˆ one letter grade vs Logan â€” out = better, in = worse. Vertices numbered clockwise from top."
-    : "Rings run F (center) Â· D Â· C Â· B Â· A (outer edge). Vertices numbered clockwise from top.";
+ÚË›JOOÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+™]ˆŠNÂˆ˜Û\ÜÓ˜[YOHXˆŠÊÏOOXXİ]™OÈˆXİ]™HˆˆŠNÈ^ÛÛ[[›Âˆ›Û˜ÛXÚÏJ
+OOØXİ]™OZÎÈÚİĞ[
 
-  // legend (click to focus/morph, double-click to show all)
-  const lg=document.getElementById("legend"); lg.innerHTML="";
-  ds.cities.forEach((c,ci)=>{
-    const base=isDelta&&isBaseline(ci,ds);
-    const d=document.createElement("div");
-    d.className="item"+(c.hidden?" litem-hidden":(base?" litem-base clickable":(ci===focusIndex?" litem-focus clickable":" clickable")));
-    d.innerHTML=`<span class="swatch" style="background:${c.color}"></span>${escHtml(c.name)}`+(base?` <span style="font-size:10px;color:var(--muted)">(baseline)</span>`:``);
-    if(!c.hidden){
-      d.onclick=()=>legendClick(ci);
-      d.ondblclick=()=>legendDbl(ci);
-    }
-    lg.appendChild(d);
-  });
-  // focus hint + show-all button
-  const fh=document.getElementById("focushint");
-  const sab=document.getElementById("showAllBtn");
-  if(focusIndex!==null && ds.cities[focusIndex]){
-    if(fh) fh.textContent="Showing "+ds.cities[focusIndex].name+" only â€” click another legend city to morph, or double-click any city (or â€œShow all citiesâ€) to overlay them.";
-    if(sab) sab.style.display="";
-  } else {
-    if(fh) fh.textContent=isDelta
-      ? "Logan is the bold baseline ring. Click any other legend city to isolate its shape; click another to morph; double-click to show all."
-      : "Click a legend city to isolate its star; click another to morph between them; double-click to show all.";
-    if(sab) sab.style.display="none";
-  }
-  // axis key
-  const ak=document.getElementById("axiskey"); ak.innerHTML="";
-  ds.params.forEach((p,i)=>{
-    const d=document.createElement("div"); d.innerHTML=`<b>${i+1}</b> &nbsp;${escHtml(p)}`;
-    ak.appendChild(d);
-  });
-  // view toggle button state
-  const vd=document.getElementById("viewDelta"), va=document.getElementById("viewAbs");
-  if(vd) vd.classList.toggle("on",isDelta);
-  if(va) va.classList.toggle("on",!isDelta);
-}
+NÈ™[™\[
 
-function renderAll(){ renderTabs(); renderTable(); renderChart(); save(); }
+NßNÂˆ˜\[™Ú[
+
+NÂˆJNÂŸB‚™[˜İ[Ûˆ™[™\•X›J
+^ÂˆÛÛœİÏQUVØXİ]™WNÂˆÛÛœİ\Ñ[O]šY]Ó[ÙOOOH™[HÂˆØİ[Y[™Ù][[Y[RY
+X›U]HŠK^ÛÛ[H‘Ü˜Y\È8 %ŠÙË›X™[ÂˆØİ[Y[™Ù][[Y[RY
+˜Ú\]HŠK^ÛÛ[YË›X™[
+Ê\Ñ[OÈˆ0­ÈœÈÙØ[ˆˆˆŠNÂˆØİ[Y[™Ù][[Y[RY
+››İHŠKš[›™\’SYË››İNÂ‚ˆÛÛœİ›YØİ[Y[™Ù][[Y[RY
+™ÜšYŠNÈ›š[›™\’SHˆÂˆËÈXY\‚ˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+ˆŠNÂˆ‹š[›™\’SIÏÛ\ÜÏH˜ÛÜ›™\ˆ”\˜[Y]\ˆÚ]Oİ‰ÎÂˆË˜Ú]Y\Ë™›Ü‘XXÚ
 
-/* ---------- focus / morph ---------- */
-function legendClick(ci){
-  if(DATA[active].cities[ci].hidden) return;
-  if(legTimer) return;                 // a dblclick is in progress
-  legTimer=setTimeout(()=>{
-    legTimer=null;
-    if(focusIndex===null) enterFocus(ci);
-    else if(ci!==focusIndex) morphTo(ci);
-  }, 240);
-}
-function legendDbl(ci){ if(legTimer){clearTimeout(legTimer); legTimer=null;} showAll(); }
-function enterFocus(ci){ stopMorph(); focusIndex=ci; morph=null; renderChart(); }
-function showAll(){ stopMorph(); focusIndex=null; morph=null; renderChart(); }
-function stopMorph(){ if(morphRAF){ cancelAnimationFrame(morphRAF); morphRAF=null; } morph=null; }
-function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
-function morphTo(toIdx){
-  const ds=DATA[active];
-  if(!ds.cities[focusIndex]||!ds.cities[toIdx]) { enterFocus(toIdx); return; }
-  stopMorph();
-  const from=ds.cities[focusIndex].values.slice();
-  const to=ds.cities[toIdx].values;
-  const fromCol=ds.cities[focusIndex].color, toCol=ds.cities[toIdx].color;
-  const dur=560, t0=performance.now();
-  function frame(now){
-    let t=Math.min(1,(now-t0)/dur); const e=easeInOut(t);
-    const vals=from.map((v,i)=>v+((to[i]!==undefined?to[i]:v)-v)*e);
-    morph={vals, color:lerpHex(fromCol,toCol,e)};
-    renderChart();
-    if(t<1){ morphRAF=requestAnimationFrame(frame); }
-    else { morphRAF=null; morph=null; focusIndex=toIdx; renderChart(); }
-  }
-  morphRAF=requestAnimationFrame(frame);
-}
+ËÚJOOÂˆÛÛœİ˜\ÙOZ\Ñ[I‰š\Ğ˜\Ù[[™JÚKÊNÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+ŠNÈ˜Û\ÜÓ˜[YOH˜Ú]HŠÊËšY[ÈˆÛÛY[ˆˆˆŠJÊ˜\ÙOÈˆ˜\Ù[[™HˆˆŠNÂˆÛÛœİ›ĞÏ[ØÚÙYÈˆ™XYÛ›HˆˆÂˆÛÛœİ›PÏ[ØÚÙYÈˆ˜Ü[ˆÛ\ÜÏHˆ]OH”™[[İ™HÚ]HˆÛ˜ÛXÚÏHœ™[[İ™PÚ]J	ØÚ_JH‰[Y\ÎÏÜÜ[˜Âˆš[›™\’SX]ˆÛ\ÜÏH˜Ú]ZXY˜
+Âˆ[œ]\OH˜ÚXÚØ›ŞˆÛ\ÜÏHš\Èˆ	ØËšY[Èˆˆ˜ÚXÚÙYŸH]OH”ÚİÈÛˆÚ\ˆÛ˜Ú[™ÙOHÙÙÛRY[Š	ØÚ_JH˜
+ÂˆÜ[ˆÛ\ÜÏHœİØ]Úˆİ[OH˜˜XÚÙÜ›İ[™‰ØË˜ÛÛÜŸHÜÜ[˜
+Âˆ[œ]Û\ÜÏH˜Û˜[YH‰Ü›ĞßH˜[YOH‰Ù\ØĞ]ŠË›˜[YJ_HˆÛ˜Ú[™ÙOHœÙ]Ú]S˜[YJ	ØÚ_K\Ë˜[YJH˜
+ÂˆHÛ\ÜÏH˜Ú][[šÈˆ™YH‰Ù\ØĞ]ŠÚ]S[šÊÊJ_Hˆ\™Ù]H—Ø›[šÈˆ™[H››ÛÜ[™\ˆˆ]OH“Ü[ˆ[ˆİ™\šY]ÈÙˆ	Ù\ØĞ]ŠË›˜[YJ_H‰ˆÎNNNÏØO˜
+Âˆ›PÊØÙ]˜
+Ê˜\ÙOØ]ˆÛ\ÜÏH˜˜\Ù]YÈ˜˜\Ù[[™OÙ]˜˜
+NÂˆ‹˜\[™Ú[
+
+NÂˆJNÂˆ›˜\[™Ú[
+ŠNÂˆËÈ›İÜÈ8 %ØÚÙYÚİÜÈUTˆÜ˜Y\ÎÈ[›ØÚÙYÚİÜÈH˜]ÈLL›ÜˆY][™ÂˆËœ\˜[\Ë™›Ü‘XXÚ
 
-/* ---------- edits ---------- */
-function setVal(ci,pi,v){ let n=parseFloat(v); if(isNaN(n))n=0; n=Math.max(0,Math.min(10,n));
-  DATA[active].cities[ci].values[pi]=n; renderAll(); }
-function setCityName(ci,v){ DATA[active].cities[ci].name=v||("City "+(ci+1)); renderAll(); }
-function setParamName(pi,v){ DATA[active].params[pi]=v||("Param "+(pi+1)); renderAll(); }
-function toggleHidden(ci){ const c=DATA[active].cities[ci]; c.hidden=!c.hidden;
-  if(c.hidden && focusIndex===ci){ stopMorph(); focusIndex=null; }
-  renderAll(); }
-function removeCity(ci){ const ds=DATA[active]; if(ds.cities.length<=1){alert("Keep at least one city.");return;}
-  ds.cities.splice(ci,1); showAll(); renderAll(); }
-function removeParam(pi){ const ds=DATA[active]; if(ds.params.length<=3){alert("A radar needs at least 3 axes.");return;}
-  ds.params.splice(pi,1); ds.cities.forEach(c=>c.values.splice(pi,1)); openLabels[active].clear(); renderAll(); }
-function addCity(){ const ds=DATA[active]; const name=prompt("New city name:","New City"); if(name===null)return;
-  const color=PALETTE[ds.cities.length%PALETTE.length];
-  ds.cities.push({name:name||"New City",color,values:ds.params.map(()=>5)}); showAll(); renderAll(); }
-function addParam(){ const ds=DATA[active]; const name=prompt("New parameter name:","New Parameter"); if(name===null)return;
-  ds.params.push(name||"New Parameter"); ds.cities.forEach(c=>c.values.push(5)); renderAll(); }
-function resetActive(){ if(!confirm("Reset this radar to its starting data?"))return;
-  DATA[active]=defaults()[active]; openLabels[active].clear(); showAll(); renderAll(); }
+JOOÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+ˆŠNÂˆÛÛœİXYØİ[Y[˜Ü™X]Q[[Y[
+ŠNÈX‹˜Û\ÜÓ˜[YOHœ›İÛX™[ÂˆÛÛœİ›Ô[ØÚÙYÈˆ™XYÛ›HˆˆÂˆÛÛœİ›T[ØÚÙYÈˆ˜Ü[ˆÛ\ÜÏHˆ]OH”™[[İ™H\˜[Y]\ˆˆÛ˜ÛXÚÏHœ™[[İ™T\˜[J	Ü_JH‰[Y\ÎÏÜÜ[˜ÂˆX‹š[›™\’S\›T
+Ø[œ]Û\ÜÏHœ˜[YH‰Ü›ÔH˜[YOH‰Ù\ØĞ]Š
+_HˆÛ˜Ú[™ÙOHœÙ]\˜[S˜[YJ	Ü_K\Ë˜[YJH˜Âˆ‹˜\[™Ú[
+XŠNÂˆË˜Ú]Y\Ë™›Ü‘XXÚ
 
-/* ---------- import / export ---------- */
-function exportJSON(){
-  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="climate-haven-radars-data.json"; a.click(); URL.revokeObjectURL(a.href);
-}
-function importJSON(inp){ const f=inp.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d.comfort2030&&d.safety){DATA=d;openLabels={};initOpenLabels();showAll();renderAll();}
-    else alert("That file doesn't look like a radars export."); }catch(e){alert("Could not read that file.");} };
-  r.readAsText(f); inp.value=""; }
+ËÚJOOÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+ŠNÂˆÛÛœİXË˜[Y\ÖÜWKÏYÜ˜YJŠKØYÜ˜YP˜\ÙJŠKYXËšY[ÈˆÛÛY[ˆˆˆÂˆYŠØÚÙY
+^Âˆš[›™\’SX]ˆÛ\ÜÏH™ØÙ[ÉÙØŸIÚYH‰ÙßOÙ]˜ÂˆH[ÙHÂˆš[›™\’SX[œ]Û\ÜÏH˜Ù[ÉÙØŸIÚYHˆ\OH›[X™\ˆˆZ[HŒˆX^HŒLˆİ\HŒHˆ˜[YOH‰İŸH˜
+ÂˆÛ˜Ú[™ÙOHœÙ]˜[
+	ØÚ_K	Ü_K\Ë˜[YJH˜ÂˆBˆ‹˜\[™Ú[
+
+NÂˆJNÂˆ›˜\[™Ú[
+ŠNÂˆJNÂ‚ˆËÈİ[[X\Nˆİ™\˜[Ü˜YH
+]™\˜YÙHÙˆH^\ÊK]\œË›İšY]È[Ù\ÂˆÛÛœİ\YØİ[Y[˜Ü™X]Q[[Y[
+ˆŠNÈ\‹˜Û\ÜÓ˜[YOH˜›[™›İÈÂˆÛÛœİ[YØİ[Y[˜Ü™X]Q[[Y[
+ŠNÈ[˜Û\ÜÓ˜[YOH˜›[™›È[^ÛÛ[H“İ™\˜[Ü˜YHÈ\‹˜\[™Ú[
+[
+NÂˆË˜Ú]Y\Ë™›Ü‘XXÚ
+ÏOÈÛÛœİOX]™Õ˜[
+Ë˜[Y\ÊKÏYÜ˜YJJKØYÜ˜YP˜\ÙJJNÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+ŠNÈ˜Û\ÜÓ˜[YOH˜›[™˜[ÈŠÙØŠÊËšY[ÈˆÛÛY[ˆˆˆŠNÈ^ÛÛ[YÎÈ\‹˜\[™Ú[
+
+NÈJNÂˆ›˜\[™Ú[
+\ŠNÂ‚ˆËÈØÚÈRHİ]BˆÛÛœİYØİ[Y[™Ù][[Y[RY
+›ØÚĞˆŠNÈYŠŠH‹^ÛÛ[[ØÚÙYÈ¼'å$È[›ØÚÈY][™Èˆ¼'å$ˆØÚÈÂˆÛÛœİXÏYØİ[Y[™Ù][[Y[RY
+™Y]İ›ÈŠNÈYŠXÊHXËœİ[K™\Ü^O[ØÚÙYÈ››Û™Hˆ˜ÛÛ[ÈÂˆÛÛœİ›YØİ[Y[™Ù][[Y[RY
+›ØÚĞ˜[›™\ˆŠNÂˆYŠ›ŠH›‹^ÛÛ[[ØÚÙYˆÈ“ØÚÙY8 %Ü˜Y\ÈÚİÈ\È]\œÈ
+JÈ™\İ8 )ˆˆÛÜœİ
+H[™\™H™XY[Û›Kˆ[›ØÚÈÈY]H˜]È8 $ÌL™Z[™[KˆHÚ\›ÛİÜÈHšY]ÈÙÙÛKˆ‚ˆˆ‘Y][™È[›ØÚÙY8 %Ù[ÈÚİÈH˜]È8 $ÌLØÛÜ™\ÎÈÚ[™Ù\ÈØ]™HÈ\Èœ›İÜÙ\ˆÛ›KˆHJø )‘ˆ]\ˆ\È\İİÈ^H\Ü^HÚ[ˆØÚÙYˆ\ÙH^ÜÈÙY\HÛÜKˆÂŸB‚™[˜İ[ÛˆÛYÛÛ”Ú[Ê˜[ËŞŞK‹Š^Âˆ]ÏV×NÂˆ›ÜŠ]OLÚOÚJÊÊ^ÂˆÛÛœİOJNL
+ÈJŒÍŒÓŠJ“X]”KÌNÂˆÛÛœİJX]›X^
+X]›Z[ŠL˜[ÖÚWJJKÌL
+J”ÂˆËœ\Ú
+ØŞ
+ÜŠ“X]˜ÛÜÊJKŞJÜŠ“X]œÚ[ŠJWJNÂˆBˆ™]\›ˆÎÂŸB‚™[˜İ[Ûˆ˜]ĞÚ]TÛYÛÛŠ˜[ËÛÛÜ‹ŞŞK‹Š^ÂˆÛÛœİÏ\ÛYÛÛ”Ú[Ê˜[ËŞŞK‹ŠK›X\
+OœÌKÑš^Y
+JJÈ‹ŠÜÌWKÑš^Y
+JJKš›Ú[ŠˆŠNÂˆ]ÏXÛYÛÛˆÚ[ÏH‰ÜßHˆš[H‰ØÛÛÜŸHˆš[[ÜXÚ]OHŒŒMˆİ›ÚÙOH‰ØÛÛÜŸHˆİ›ÚÙK]ÚYHŒ‹Œˆˆİ›ÚÙK[[™Z›Ú[Hœ›İ[™‹Ï˜ÂˆÛYÛÛ”Ú[Ê˜[ËŞŞK‹ŠK™›Ü‘XXÚ
+OÂˆÊÏXÚ\˜ÛHŞH‰ÜÌKÑš^Y
+J_HˆŞOH‰ÜÌWKÑš^Y
+J_HˆHŒ‹ˆˆš[H‰ØÛÛÜŸH‹Ï˜ÂˆJNÂˆ™]\›ˆÎÂŸB‚™[˜İ[Ûˆ™[™\Ú\
 
-/* ---------- PNG export ---------- */
-function downloadPNG(){
-  const svg=document.getElementById("svg");
-  const cs=getComputedStyle(document.documentElement);
-  let markup=svg.outerHTML
-    .replace(/var\(--grid\)/g, cs.getPropertyValue("--grid").trim()||"#c9d3dc")
-    .replace(/var\(--line\)/g, cs.getPropertyValue("--line").trim()||"#dbe2e8");
-  const scale=2, W=520, H=470;
-  const img=new Image();
-  const svgBlob=new Blob(['<?xml version="1.0"?>'+markup],{type:"image/svg+xml;charset=utf-8"});
-  const url=URL.createObjectURL(svgBlob);
-  const isDelta=viewMode==="delta";
-  img.onload=()=>{
-    const canvas=document.createElement("canvas"); canvas.width=W*scale; canvas.height=(H+70)*scale;
-    const ctx=canvas.getContext("2d"); ctx.scale(scale,scale);
-    ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,W,H+70);
-    ctx.drawImage(img,0,0,W,H);
-    // title
-    ctx.fillStyle="#1c2733"; ctx.font="700 17px sans-serif"; ctx.textAlign="center";
-    ctx.fillText(DATA[active].label+(isDelta?" â€” vs Logan":""), W/2, H+22);
-    // legend (only what's shown on the chart)
-    const ds=DATA[active]; ctx.font="12px sans-serif";
-    const shown = (focusIndex!==null && ds.cities[focusIndex]) ? [ds.cities[focusIndex]] : ds.cities.filter(c=>!c.hidden);
-    let lx=24, ly=H+46; ctx.textAlign="left";
-    shown.forEach((c,i)=>{ const nm=c.name+(isDelta&&isBaseline(ds.cities.indexOf(c),ds)?" (baseline)":"");
-      const w=ctx.measureText(nm).width+22;
-      if(lx+w>W-16){lx=24;ly+=18;}
-      ctx.fillStyle=c.color; ctx.fillRect(lx,ly-9,11,11);
-      ctx.fillStyle="#1c2733"; ctx.fillText(nm,lx+15,ly);
-      lx+=w; });
-    URL.revokeObjectURL(url);
-    canvas.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b);
-      a.download=active+(isDelta?"-vs-logan":"")+"-radar.png"; a.click();
-      URL.revokeObjectURL(a.href); });
-  };
-  img.onerror=()=>{ URL.revokeObjectURL(url); alert("PNG export failed in this browser â€” try Chrome or Edge."); };
-  img.src=url;
-}
+^ÂˆÛÛœİÏQUVØXİ]™WKYËœ\˜[\Ë›[™İÂˆÛÛœİ\Ñ[O]šY]Ó[ÙOOOH™[HÂˆÛÛœİİ™ÏYØİ[Y[™Ù][[Y[RY
+œİ™ÈŠNÂˆÛÛœİŞLŒŞOLŒÌLML•ÏMLŒÂˆÛÛœİÜ[[Ü[“X™[ÖØXİ]™WNÂˆ]ÏHˆÂˆËÈ˜XÚÙÜ›İ[™š[™ÜÈ8 %[ˆ[H[ÙHHZYHš[™È
+˜[YHJH\ÈÙØ[‰ÜÈ˜\Ù[[™BˆÛÛœİš[™Õ˜[ÏZ\Ñ[OÖÌKËKËWN–Ì‹‹LNÂˆš[™Õ˜[Ë™›Ü‘XXÚ
+OÂˆÛÛœİœTŠœ‹ÌL\Ğ˜\ÙOZ\Ñ[I‰œOOMKÏV×NÂˆ›ÜŠ]OLÚOÚJÊÊ^ØÛÛœİOJNL
+ÚJŒÍŒÓŠJ“X]”KÌNÜËœ\Ú
 
-/* ---------- helpers ---------- */
-function escAttr(s){return String(s).replace(/"/g,"&quot;");}
-function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function hex2rgb(h){h=String(h).replace('#','');if(h.length===3){h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];}
-  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
-function lerpHex(a,b,t){const A=hex2rgb(a),B=hex2rgb(b);
-  const r=Math.round(A[0]+(B[0]-A[0])*t),g=Math.round(A[1]+(B[1]-A[1])*t),bl=Math.round(A[2]+(B[2]-A[2])*t);
-  return `rgb(${r},${g},${bl})`;}
+Ş
+ÜœŠ“X]˜ÛÜÊJJKÑš^Y
+JJÈ‹ŠÊŞJÜœŠ“X]œÚ[ŠJJKÑš^Y
+JJNßBˆÊÏXÛYÛÛˆÚ[ÏH‰ÜËš›Ú[Š	È	Ê_Hˆš[H››Û™Hˆİ›ÚÙOH‰Ú\Ğ˜\ÙOÉÈÌXÌÌÌÉÎ‰İ˜\ŠKYÜšY
+IßHˆİ›ÚÙK]ÚYH‰Ú\Ğ˜\ÙOÌŒ_H‰Ú\Ğ˜\ÙOÉÈİ›ÚÙKY\Ú\œ˜^OHH‰Î‰ÉßKÏ˜ÂˆJNÂˆËÈÜÚÙ\Âˆ›ÜŠ]OLÚOÚJÊÊ^ÂˆÛÛœİOJNL
+ÚJŒÍŒÓŠJ“X]”KÌNÂˆÛÛœİ^XŞ
+ÔŠ“X]˜ÛÜÊJK^OXŞJÔŠ“X]œÚ[ŠJNÂˆÊÏX[™HOH‰ØŞHˆLOH‰ØŞ_HˆH‰Ù^Ñš^Y
+J_HˆLH‰Ù^KÑš^Y
+J_Hˆİ›ÚÙOH˜\ŠKYÜšY
+Hˆİ›ÚÙK]ÚYHŒH‹Ï˜ÂˆBˆËÈ˜\Ù[[™HX™[]HÜÙˆÙØ[‰ÜÈš[™È
+[H[ÙJBˆYŠ\Ñ[J^ÂˆÛÛœİOXŞKTŠŒNÂˆÊÏX^H‰ØŞHˆOH‰ÊKMJKÑš^Y
+J_Hˆ›Û\Ú^™OHŒLHˆ›Û]ÙZYÚHÌˆ^X[˜ÚÜH›ZYHˆš[HˆÌXÌÌÌÈ“ÙØ[ˆ
+˜\Ù[[™JOİ^˜ÂˆBˆËÈÚ]HÛYÛÛœÂˆYŠ›Øİ\Ò[™^OO[[	‰ˆË˜Ú]Y\ÖÙ›Øİ\Ò[™^J^ÂˆÛÛœİÏYË˜Ú]Y\ÖÙ›Øİ\Ò[™^NÂˆÛÛœİ˜]Õ˜[Ï[[ÜœÛ[Üœ˜[Î˜Ë˜[Y\ÎÂˆÛÛœİÛÛÜ[[ÜœÛ[Üœ˜ÛÛÜ˜Ë˜ÛÛÜÂˆÊÏY˜]ĞÚ]TÛYÛÛŠÑ\Ü^J˜]Õ˜[ËÊKÛÛÜ‹ŞŞK‹ŠNÂˆH[ÙHÂˆË˜Ú]Y\Ë™›Ü‘XXÚ
 
-/* ---------- boot ---------- */
-DATA=load();
-initOpenLabels();
-renderAll();
-</script>
-</body>
-</html>
+ËÚJOOÂˆYŠËšY[ŠH™]\›ÂˆYŠ\Ñ[H	‰ˆ\Ğ˜\Ù[[™JÚKÊJH™]\›ÈËÈÙØ[ˆTÈHš[™Ë›İHÛYÛÛ‚ˆÊÏY˜]ĞÚ]TÛYÛÛŠÑ\Ü^JË˜[Y\ËÊKË˜ÛÛÜ‹ŞŞK‹ŠNÂˆJNÂˆBˆËÈ[X™\™Y™\XÙ\È8 %ÛXÚØX›KÛˆÜÙˆHÛYÛÛœÂˆ›ÜŠ]OLÚOÚJÊÊ^ÂˆÛÛœİOJNL
+ÚJŒÍŒÓŠJ“X]”KÌNÂˆÛÛœİXŞ
+ÊŠÌŒ
+J“X]˜ÛÜÊJKOXŞJÊŠÌŒ
+J“X]œÚ[ŠJNÂˆÊÏXÈİ[OH˜İ\œÛÜœÚ[\ˆˆÛ˜ÛXÚÏHÙÙÛSX™[
+	Ú_JH˜
+ÂˆÚ\˜ÛHŞH‰ÛÑš^Y
+J_HˆŞOH‰ÛKÑš^Y
+J_HˆHŒLHˆš[H‰ÛÜ[‹š\ÊJOÉÈÌYÌÉÎ‰ÈÙYYŒ™IßHˆİ›ÚÙOH˜\ŠK[[™JH‹Ï˜
+Âˆ^H‰ÛÑš^Y
+J_HˆOH‰ÊJÍ
+KÑš^Y
+J_Hˆ›Û\Ú^™OHŒLÈˆ›Û]ÙZYÚHÌˆ^X[˜ÚÜH›ZYHˆš[H‰ÛÜ[‹š\ÊJOÉÈÙ™™™™™‰Î‰ÈÌXÌÌÌÉßH‰ÚJÌ_Oİ^˜
+ÂˆÙÏ˜ÂˆBˆËÈÜYX™[È8 %X›İ™H]™\][™Âˆ›ÜŠ]OLÚOÚJÊÊ^ÂˆYŠ[Ü[‹š\ÊJJHÛÛ[YNÂˆÛÛœİOJNL
+ÚJŒÍŒÓŠJ“X]”KÌNÛÜÏSX]˜ÛÜÊJNÂˆÛÛœİXŞ
+ÊŠÌÍ
+J“X]˜ÛÜÊJKOXŞJÊŠÌÍ
+J“X]œÚ[ŠJNÂˆÛÛœİ˜[YOYËœ\˜[\ÖÚWKÏSX]›Z[ŠÌ˜[YK›[™İ
+‹ŒJÌMŠKLNNÂˆ]HÛÜÏŒŒˆÈMˆˆ
+ÛÜÏLŒˆÈ]ÊÍˆˆ]ËÌŠNÂˆSX]›X^
+ËX]›Z[Š•Ë]ËLË
+JNÂˆÊÏXÈÚ[\‹Y]™[ÏH››Û™H˜
+Âˆ™XİH‰ÜÑš^Y
+J_HˆOH‰ÊKZÌŠKÑš^Y
+J_HˆÚYH‰İËÑš^Y
+J_HˆZYÚH‰ÚHˆHHˆš[HˆÙ™™™™™ˆˆİ›ÚÙOH˜\ŠK[[™JHˆİ›ÚÙK]ÚYHŒH‹Ï˜
+Âˆ^H‰Ê
+Î
+KÑš^Y
+J_HˆOH‰ÊJÍ
+KÑš^Y
+J_Hˆ›Û\Ú^™OHŒLHˆ›Û]ÙZYÚHŒˆš[HˆÌXÌÌÌÈ‰Ù\ØÒ[
+˜[YJ_Oİ^˜
+ÂˆÙÏ˜ÂˆBˆİ™Ëš[›™\’S\ÎÂ‚ˆËÈØØ[H[ˆÛÛœİÚYØİ[Y[™Ù][[Y[RY
+œØØ[Z[ŠNÂˆYŠÚ
+HÚ^ÛÛ[Z\Ñ[BˆÈ›Ûš[™ÈHÙØ[ˆ
+[İ\ˆ˜\Ù[[™JKˆXXÚš[™Èİ\8¢bÛ™HÜ˜YHœÈÙØ[ˆ8 %İ]H™]\‹[ˆHÛÜœÙKˆ™\XÙ\È[X™\™YÛØÚİÚ\ÙHœ›ÛHÜˆ‚ˆˆ”š[™ÜÈ[ˆˆ
+Ù[\ŠH0­È0­ÈÈ0­Èˆ0­ÈH
+İ]\ˆYÙJKˆ™\XÙ\È[X™\™YÛØÚİÚ\ÙHœ›ÛHÜˆÂ‚ˆËÈYÙ[™
+ÛXÚÈÈ›Øİ\ËÛ[ÜœİX›KXÛXÚÈÈÚİÈ[
+BˆÛÛœİÏYØİ[Y[™Ù][[Y[RY
+›YÙ[™ŠNÈËš[›™\’SHˆÂˆË˜Ú]Y\Ë™›Ü‘XXÚ
+
+ËÚJOOÂˆÛÛœİ˜\ÙOZ\Ñ[I‰š\Ğ˜\Ù[[™JÚKÊNÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+™]ˆŠNÂˆ˜Û\ÜÓ˜[YOHš][HŠÊËšY[Èˆ][KZY[ˆŠ˜\ÙOÈˆ][KX˜\ÙHÛXÚØX›HŠÚOOOY›Øİ\Ò[™^Èˆ][KY›Øİ\ÈÛXÚØX›HˆˆÛXÚØX›HŠJJNÂˆš[›™\’SXÜ[ˆÛ\ÜÏHœİØ]Úˆİ[OH˜˜XÚÙÜ›İ[™‰ØË˜ÛÛÜŸHÜÜ[‰Ù\ØÒ[
+Ë›˜[YJ_X
+Ê˜\ÙOØÜ[ˆİ[OH™›Û\Ú^™NŒLØÛÛÜ˜\ŠK[]]Y
+HŠ˜\Ù[[™JOÜÜ[˜˜
+NÂˆYŠXËšY[Š^Âˆ›Û˜ÛXÚÏJ
+OO›YÙ[™ÛXÚÊÚJNÂˆ›Û™›ÛXÚÏJ
+OO›YÙ[™›
+ÚJNÂˆBˆË˜\[™Ú[
+
+NÂˆJNÂˆËÈ›Øİ\È[
+ÈÚİËX[]Û‚ˆÛÛœİšYØİ[Y[™Ù][[Y[RY
+™›Øİ\Ú[ŠNÂˆÛÛœİØXYØİ[Y[™Ù][[Y[RY
+œÚİĞ[ˆŠNÂˆYŠ›Øİ\Ò[™^OO[[	‰ˆË˜Ú]Y\ÖÙ›Øİ\Ò[™^J^ÂˆYŠš
+Hš^ÛÛ[H”ÚİÚ[™ÈŠÙË˜Ú]Y\ÖÙ›Øİ\Ò[™^K›˜[YJÈˆÛ›H8 %ÛXÚÈ[›İ\ˆYÙ[™Ú]HÈ[ÜœÜˆİX›KXÛXÚÈ[HÚ]H
+Üˆ8 'ÚİÈ[Ú]Y\ø 'JHÈİ™\›^H[KˆÂˆYŠØXŠHØX‹œİ[K™\Ü^OHˆÂˆH[ÙHÂˆYŠš
+Hš^ÛÛ[Z\Ñ[BˆÈ“ÙØ[ˆ\ÈH›Û˜\Ù[[™Hš[™ËˆÛXÚÈ[Hİ\ˆYÙ[™Ú]HÈ\ÛÛ]H]ÈÚ\NÈÛXÚÈ[›İ\ˆÈ[ÜœÈİX›KXÛXÚÈÈÚİÈ[ˆ‚ˆˆÛXÚÈHYÙ[™Ú]HÈ\ÛÛ]H]Èİ\ÈÛXÚÈ[›İ\ˆÈ[Üœ™]ÙY[ˆ[NÈİX›KXÛXÚÈÈÚİÈ[ˆÂˆYŠØXŠHØX‹œİ[K™\Ü^OH››Û™HÂˆBˆËÈ^\ÈÙ^BˆÛÛœİZÏYØİ[Y[™Ù][[Y[RY
+˜^\ÚÙ^HŠNÈZËš[›™\’SHˆÂˆËœ\˜[\Ë™›Ü‘XXÚ
+
+JOOÂˆÛÛœİYØİ[Y[˜Ü™X]Q[[Y[
+™]ˆŠNÈš[›™\’SX‰ÚJÌ_OØˆ	›˜œÜÉÙ\ØÒ[
+
+_XÂˆZË˜\[™Ú[
+
+NÂˆJNÂˆËÈšY]ÈÙÙÛH]Ûˆİ]BˆÛÛœİ™YØİ[Y[™Ù][[Y[RY
+šY]Ñ[HŠK˜OYØİ[Y[™Ù][[Y[RY
+šY]ĞXœÈŠNÂˆYŠ™
+H™˜Û\ÜÓ\İÙÙÛJ›Ûˆ‹\Ñ[JNÂˆYŠ˜JH˜K˜Û\ÜÓ\İÙÙÛJ›Ûˆ‹Z\Ñ[JNÂŸB‚™[˜İ[Ûˆ™[™\[
+
+^È™[™\•XœÊ
+NÈ™[™\•X›J
+NÈ™[™\Ú\
+
+NÈØ]™J
+NÈB‚‹ÊˆKKKKKKKKKH›Øİ\ÈÈ[ÜœKKKKKKKKKH
+‹Â™[˜İ[ÛˆYÙ[™ÛXÚÊÚJ^ÂˆYŠUVØXİ]™WK˜Ú]Y\ÖØÚWKšY[ŠH™]\›ÂˆYŠYÕ[Y\ŠH™]\›ÈËÈH›ÛXÚÈ\È[ˆ›ÙÜ™\ÜÂˆYÕ[Y\\Ù][Y[İ]
+
+
+OOÂˆYÕ[Y\[[ÂˆYŠ›Øİ\Ò[™^OO[[
+H[\‘›Øİ\ÊÚJNÂˆ[ÙHYŠÚHOOY›Øİ\Ò[™^
+H[ÜœÊÚJNÂˆK
+NÂŸB™[˜İ[ÛˆYÙ[™›
+ÚJ^ÈYŠYÕ[Y\Š^ØÛX\•[Y[İ]
+YÕ[Y\ŠNÈYÕ[Y\[[ßHÚİĞ[
+
+NÈB™[˜İ[Ûˆ[\‘›Øİ\ÊÚJ^ÈİÜ[Üœ
+
+NÈ›Øİ\Ò[™^XÚNÈ[Üœ[[È™[™\Ú\
+
+NÈB™[˜İ[ÛˆÚİĞ[
+
+^ÈİÜ[Üœ
+
+NÈ›Øİ\Ò[™^[[È[Üœ[[È™[™\Ú\
+
+NÈB™[˜İ[ÛˆİÜ[Üœ
+
+^ÈYŠ[ÜœQŠ^ÈØ[˜Ù[[š[X][Û‘œ˜[YJ[ÜœQŠNÈ[ÜœQ[[ÈH[Üœ[[ÈB™[˜İ[ÛˆX\ÙR[“İ]
+
+^È™]\›ˆHÈŠ
+ˆKSX]œİÊLŠ
+Ì‹ŠKÌÈB™[˜İ[Ûˆ[ÜœÊÒY
+^ÂˆÛÛœİÏQUVØXİ]™WNÂˆYŠYË˜Ú]Y\ÖÙ›Øİ\Ò[™^_YË˜Ú]Y\ÖİÒYJHÈ[\‘›Øİ\ÊÒY
+NÈ™]\›ÈBˆİÜ[Üœ
+
+NÂˆÛÛœİœ›ÛOYË˜Ú]Y\ÖÙ›Øİ\Ò[™^K˜[Y\ËœÛXÙJ
+NÂˆÛÛœİÏYË˜Ú]Y\ÖİÒYK˜[Y\ÎÂˆÛÛœİœ›ÛPÛÛYË˜Ú]Y\ÖÙ›Øİ\Ò[™^K˜ÛÛÜ‹ĞÛÛYË˜Ú]Y\ÖİÒYK˜ÛÛÜÂˆÛÛœİ\MMŒ\\™›Ü›X[˜ÙK››İÊ
+NÂˆ[˜İ[Ûˆœ˜[YJ›İÊ^Âˆ]SX]›Z[ŠK
+›İË]
+KÙ\ŠNÈÛÛœİOYX\ÙR[“İ]
+
+NÂˆÛÛœİ˜[ÏYœ›ÛK›X\
+
+‹JOOŠÊ
+ÖÚWHOO][™Yš[™YİÖÚWNŠK]ŠJ™JNÂˆ[Üœ^İ˜[ËÛÛÜ›\œ^
+œ›ÛPÛÛĞÛÛJ_NÂˆ™[™\Ú\
+
+NÂˆYŠJ^È[ÜœQ\™\]Y\İ[š[X][Û‘œ˜[YJœ˜[YJNÈBˆ[ÙHÈ[ÜœQ[[È[Üœ[[È›Øİ\Ò[™^]ÒYÈ™[™\Ú\
+
+NÈBˆBˆ[ÜœQ\™\]Y\İ[š[X][Û‘œ˜[YJœ˜[YJNÂŸB‚‹ÊˆKKKKKKKKKHY]ÈKKKKKKKKKH
+‹Â™[˜İ[ÛˆÙ]˜[
+ÚKKŠ^È]\\œÙQ›Ø]
+ŠNÈYŠ\Ó˜SŠŠJ[LÈSX]›X^
+X]›Z[ŠLŠJNÂˆUVØXİ]™WK˜Ú]Y\ÖØÚWK˜[Y\ÖÜWO[È™[™\[
+
+NÈB™[˜İ[ÛˆÙ]Ú]S˜[YJÚKŠ^ÈUVØXİ]™WK˜Ú]Y\ÖØÚWK›˜[YO]Ÿ
+Ú]HŠÊÚJÌJJNÈ™[™\[
+
+NÈB™[˜İ[ÛˆÙ]\˜[S˜[YJKŠ^ÈUVØXİ]™WKœ\˜[\ÖÜWO]Ÿ
+”\˜[HŠÊJÌJJNÈ™[™\[
+
+NÈB™[˜İ[ÛˆÙÙÛRY[ŠÚJ^ÈÛÛœİÏQUVØXİ]™WK˜Ú]Y\ÖØÚWNÈËšY[HXËšY[ÂˆYŠËšY[ˆ	‰ˆ›Øİ\Ò[™^OOXÚJ^ÈİÜ[Üœ
+
+NÈ›Øİ\Ò[™^[[ÈBˆ™[™\[
+
+NÈB™[˜İ[Ûˆ™[[İ™PÚ]JÚJ^ÈÛÛœİÏQUVØXİ]™WNÈYŠË˜Ú]Y\Ë›[™İLJ^Ø[\
+’ÙY\]X\İÛ™HÚ]KˆŠNÜ™]\›ßBˆË˜Ú]Y\ËœÜXÙJÚKJNÈÚİĞ[
+
+NÈ™[™\[
+
+NÈB™[˜İ[Ûˆ™[[İ™T\˜[JJ^ÈÛÛœİÏQUVØXİ]™WNÈYŠËœ\˜[\Ë›[™İLÊ^Ø[\
+H˜Y\ˆ™YYÈ]X\İÈ^\ËˆŠNÜ™]\›ßBˆËœ\˜[\ËœÜXÙJKJNÈË˜Ú]Y\Ë™›Ü‘XXÚ
+ÏO˜Ë˜[Y\ËœÜXÙJKJJNÈÜ[“X™[ÖØXİ]™WK˜ÛX\Š
+NÈ™[™\[
+
+NÈB™[˜İ[ÛˆYÚ]J
+^ÈÛÛœİÏQUVØXİ]™WNÈÛÛœİ˜[YO\›Û\
+“™]ÈÚ]H˜[YNˆ‹“™]ÈÚ]HŠNÈYŠ˜[YOOO[[
+\™]\›ÂˆÛÛœİÛÛÜTSUVÙË˜Ú]Y\Ë›[™İ	TSUK›[™İNÂˆË˜Ú]Y\Ëœ\Ú
+Û˜[YN›˜[Y_“™]ÈÚ]H‹ÛÛÜ‹˜[Y\Î™Ëœ\˜[\Ë›X\
+
+
+OOJ_JNÈÚİĞ[
+
+NÈ™[™\[
+
+NÈB™[˜İ[ÛˆY\˜[J
+^ÈÛÛœİÏQUVØXİ]™WNÈÛÛœİ˜[YO\›Û\
+“™]È\˜[Y]\ˆ˜[YNˆ‹“™]È\˜[Y]\ˆŠNÈYŠ˜[YOOO[[
+\™]\›ÂˆËœ\˜[\Ëœ\Ú
+˜[Y_“™]È\˜[Y]\ˆŠNÈË˜Ú]Y\Ë™›Ü‘XXÚ
+ÏO˜Ë˜[Y\Ëœ\Ú
+JJNÈ™[™\[
+
+NÈB™[˜İ[Ûˆ™\Ù]Xİ]™J
+^ÈYŠXÛÛ™š\›J”™\Ù]\È˜Y\ˆÈ]Èİ\[™È]OÈŠJ\™]\›ÂˆUVØXİ]™WOYY˜][Ê
+VØXİ]™WNÈÜ[“X™[ÖØXİ]™WK˜ÛX\Š
+NÈÚİĞ[
+
+NÈ™[™\[
+
+NÈB‚‹ÊˆKKKKKKKKKH[\ÜÈ^ÜKKKKKKKKKH
+‹Â™[˜İ[Ûˆ^Ü”ÓÓŠ
+^ÂˆÛÛœİ›Ø[™]È›ØŠÒ”ÓÓ‹œİš[™ÚYJUK[ŠWKİ\Nˆ˜\XØ][Û‹ÚœÛÛˆŸJNÂˆÛÛœİOYØİ[Y[˜Ü™X]Q[[Y[
+˜HŠNÈKš™YUT“˜Ü™X]SØš™XİT“
+›ØŠNÂˆK™İÛ›ØYH˜Û[X]KZ]™[‹\˜Y\œËY]KšœÛÛˆÈK˜ÛXÚÊ
+NÈT“œ™]›ÚÙSØš™XİT“
+Kš™YŠNÂŸB™[˜İ[Ûˆ[\Ü”ÓÓŠ[œ
+^ÈÛÛœİZ[œ™š[\ÖÌNÈYŠYŠ\™]\›ÈÛÛœİ[™]Èš[T™XY\Š
+NÂˆ‹›Û›ØYJ
+OOÈ^ÈÛÛœİR”ÓÓ‹œ\œÙJ‹œ™\İ[
+NÈYŠ˜ÛÛY›ÜŒÌ	‰™œØY™]J^ÑUOYÛÜ[“X™[Ï^ßNÚ[š]Ü[“X™[Ê
+NÜÚİĞ[
+
+NÜ™[™\[
+
+NßBˆ[ÙH[\
+•]š[HÙ\Û‰İÛÚÈZÙHH˜Y\œÈ^ÜˆŠNÈXØ]Ú
+J^Ø[\
+Ûİ[›İ™XY]š[KˆŠNßHNÂˆ‹œ™XY\Õ^
+ŠNÈ[œ˜[YOHˆÈB‚‹ÊˆKKKKKKKKKH‘È^ÜKKKKKKKKKH
+‹Â™[˜İ[ÛˆİÛ›ØY‘Ê
+^ÂˆÛÛœİİ™ÏYØİ[Y[™Ù][[Y[RY
+œİ™ÈŠNÂˆÛÛœİÜÏYÙ]ÛÛ\]Yİ[JØİ[Y[™Øİ[Y[[[Y[
+NÂˆ]X\šİ\\İ™Ë›İ]\’Sˆœ™\XÙJİ˜\—
+KYÜšY
+KÙËÜË™Ù]›Ü\U˜[YJ‹KYÜšYŠKš[J
+_ˆØÎYÙÈŠBˆœ™\XÙJİ˜\—
+K[[™W
+KÙËÜË™Ù]›Ü\U˜[YJ‹K[[™HŠKš[J
+_ˆÙ™L™NŠNÂˆÛÛœİØØ[OL‹ÏMLŒMÌÂˆÛÛœİ[YÏ[™]È[XYÙJ
+NÂˆÛÛœİİ™Ğ›Ø[™]È›ØŠÉÏŞ[™\œÚ[ÛHŒKŒÏ‰ÊÛX\šİ\Kİ\Nˆš[XYÙKÜİ™ÊŞ[ØÚ\œÙ]]]‹NŸJNÂˆÛÛœİ\›UT“˜Ü™X]SØš™XİT“
+İ™Ğ›ØŠNÂˆÛÛœİ\Ñ[O]šY]Ó[ÙOOOH™[HÂˆ[YË›Û›ØYJ
+OOÂˆÛÛœİØ[˜\ÏYØİ[Y[˜Ü™X]Q[[Y[
+˜Ø[˜\ÈŠNÈØ[˜\ËÚYUÊœØØ[NÈØ[˜\ËšZYÚJ
+ÍÌ
+JœØØ[NÂˆÛÛœİİXØ[˜\Ë™Ù]ÛÛ^
+Œ™ŠNÈİœØØ[JØØ[KØØ[JNÂˆİ™š[İ[OHˆÙ™™™™™ˆÈİ™š[™Xİ
+Ë
+ÍÌ
+NÂˆİ™˜]Ò[XYÙJ[YËË
+NÂˆËÈ]Bˆİ™š[İ[OHˆÌXÌÌÌÈÈİ™›ÛHÌMÜØ[œË\Ù\šYˆÈİ^[YÛH˜Ù[\ˆÂˆİ™š[^
+UVØXİ]™WK›X™[
+Ê\Ñ[OÈˆ8 %œÈÙØ[ˆˆˆŠKËÌ‹
+ÌŒŠNÂˆËÈYÙ[™
+Û›HÚ]	ÜÈÚİÛˆÛˆHÚ\
+BˆÛÛœİÏQUVØXİ]™WNÈİ™›ÛHŒLœØ[œË\Ù\šYˆÂˆÛÛœİÚİÛˆH
+›Øİ\Ò[™^OO[[	‰ˆË˜Ú]Y\ÖÙ›Øİ\Ò[™^JHÈÙË˜Ú]Y\ÖÙ›Øİ\Ò[™^WHˆË˜Ú]Y\Ë™š[\ŠÏOˆXËšY[ŠNÂˆ]LOR
+ÍÈİ^[YÛH›YÂˆÚİÛ‹™›Ü‘XXÚ
+
+ËJOOÈÛÛœİ›OXË›˜[YJÊ\Ñ[I‰š\Ğ˜\Ù[[™JË˜Ú]Y\Ëš[™^ÙŠÊKÊOÈˆ
+˜\Ù[[™JHˆˆŠNÂˆÛÛœİÏXİ›YX\İ\™U^
+›JKÚY
+ÌŒÂˆYŠ
+İÏ•ËLMŠ^ÛLÛJÏLNßBˆİ™š[İ[OXË˜ÛÛÜÈİ™š[™Xİ
+KNKLKLJNÂˆİ™š[İ[OHˆÌXÌÌÌÈÈİ™š[^
+›K
+ÌMKJNÂˆ
+Ï]ÎÈJNÂˆT“œ™]›ÚÙSØš™XİT“
+\›
+NÂˆØ[˜\ËĞ›ØŠOÈÛÛœİOYØİ[Y[˜Ü™X]Q[[Y[
+˜HŠNÈKš™YUT“˜Ü™X]SØš™XİT“
+ŠNÂˆK™İÛ›ØYXXİ]™JÊ\Ñ[OÈ‹]œË[ÙØ[ˆˆˆŠJÈ‹\˜Y\‹œ™ÈÈK˜ÛXÚÊ
+NÂˆT“œ™]›ÚÙSØš™XİT“
+Kš™YŠNÈJNÂˆNÂˆ[YË›Û™\œ›ÜJ
+OOÈT“œ™]›ÚÙSØš™XİT“
+\›
+NÈ[\
+”‘È^Ü˜Z[Y[ˆ\Èœ›İÜÙ\ˆ8 %HÚ›ÛYHÜˆYÙKˆŠNÈNÂˆ[YËœÜ˜Ï]\›ÂŸB‚‹ÊˆKKKKKKKKKH[\œÈKKKKKKKKKH
+‹Â™[˜İ[Ûˆ\ØĞ]ŠÊ^Ü™]\›ˆİš[™ÊÊKœ™\XÙJÈ‹ÙË‰œ][İÈŠNßB™[˜İ[Ûˆ\ØÒ[
+Ê^Ü™]\›ˆİš[™ÊÊKœ™\XÙJÉ‹ÙË‰˜[\ÈŠKœ™\XÙJÏÙË‰›ÈŠKœ™\XÙJÏ‹ÙË‰™İÈŠNßB™[˜İ[Ûˆ^œ™ØŠ
+^ÚTİš[™Ê
+Kœ™\XÙJ	ÈÉË	ÉÊNÚYŠ›[™İOOLÊ^ÚZÌJÚÌJÚÌWJÚÌWJÚÌ—JÚÌ—NßBˆ™]\›ˆÜ\œÙR[
+œÛXÙJŠKMŠK\œÙR[
+œÛXÙJ‹
+KMŠK\œÙR[
+œÛXÙJŠKMŠWNßB™[˜İ[Ûˆ\œ^
+K‹
+^ØÛÛœİOZ^œ™ØŠJKZ^œ™ØŠŠNÂˆÛÛœİSX]œ›İ[™
+VÌJÊ–ÌKPVÌJJ
+KÏSX]œ›İ[™
+VÌWJÊ–ÌWKPVÌWJJ
+K›SX]œ›İ[™
+VÌ—JÊ–Ì—KPVÌ—JJ
+NÂˆ™]\›ˆ™ØŠ	ÜŸK	ÙßK	Ø›JXßB‚‹ÊˆKKKKKKKKKH›ÛİKKKKKKKKKH
+‹Â‘UO[ØY
+
+NÂš[š]Ü[“X™[Ê
+NÂœ™[™\[
+
+NÂÜØÜš\‚Ø›ÙO‚Ú[‚
