@@ -158,19 +158,22 @@ function defaults(){
   return {
     comfort2030:{
       label:"Comfort · 2030s",
-      note:SCALE+"Present-day comfort. Every axis: higher = more pleasant — Winter Mildness high means milder winters, "+
-        "Humidity Comfort high means drier, Allergy Resilience high means less pollen (AAFA 2026 ranks). Compare this radar "+
-        "to Comfort · 2040s to see which places hold up.",
-      params:["Summer Heat Comfort","Winter Mildness","Humidity Comfort","Sunshine","Allergy Resilience"],
-      cities:mk([[6,3,9,8,1],[7,4,5,2,2],[8,2,5,4,5],[5,6,4,5,2],[5,7,5,6,1],[6,6,6,6,2],[4,6,4,6,4]])
+      note:"Comfort is graded to YOUR reality: 10 = realistically excellent (the best place your family could actually land), "+
+        "~7–8 = genuinely good on that axis, 5 = neutral, 2–3 = a real weakness — so these read like letter grades, not a "+
+        "percentile against a fantasy. Humidity peaks at a moderate 'Long Beach' ideal (both desert-dry and muggy score lower); "+
+        "Winter Mildness rewards mild, SUNNY winters; Sunshine and low pollen are 'more is better.' Compare this radar to "+
+        "Comfort · 2040s to see which places hold up. (The Economic/Accessibility/Safety radars use an absolute national "+
+        "percentile, where 5 = the median viable place.)",
+      params:["Summer Heat Comfort","Winter Mildness","Humidity (moderate = ideal)","Sunshine","Allergy Resilience"],
+      cities:mk([[8,4,5,9,3],[7,5,7,3,4],[8,3,7,5,6],[6,8,5,6,3],[7,9,8,7,4],[8,8,7,7,4],[5,8,5,8,5]])
     },
     comfort2040:{
       label:"Comfort · 2040s",
-      note:SCALE+"The same five comfort axes on the ~2045 trajectory: warming raises heat and humidity burden (worst in the "+
-        "South), lengthens allergy seasons, and softens winters. Where a city's 2040s star is SMALLER than its 2030s star, "+
-        "its comfort is eroding — the 'happy now but not later' test.",
-      params:["Summer Heat Comfort","Winter Mildness","Humidity Comfort","Sunshine","Allergy Resilience"],
-      cities:mk([[5,4,8,8,1],[6,5,4,2,2],[7,3,4,4,4],[4,7,3,5,1],[4,7,4,6,1],[5,7,5,6,1],[3,7,3,6,3]])
+      note:"Same axes, graded the same way (10 = realistically excellent), on the ~2045 trajectory: warming trims Summer Heat "+
+        "and Humidity comfort (most in the South) and lengthens allergy season, while softening winters. Where a city's 2040s "+
+        "star is SMALLER than its 2030s star, its comfort is eroding — the 'happy now but not later' test.",
+      params:["Summer Heat Comfort","Winter Mildness","Humidity (moderate = ideal)","Sunshine","Allergy Resilience"],
+      cities:mk([[7,5,5,9,3],[6,6,6,3,4],[7,4,6,5,5],[5,9,4,6,2],[6,9,7,7,3],[7,8,6,7,3],[4,8,4,8,4]])
     },
     economic:{
       label:"Economic",
@@ -213,11 +216,11 @@ function toggleLock(){ locked=!locked; renderAll(); }
 function cityLink(c){ return c.url || ("https://www.google.com/search?q="+encodeURIComponent(c.name+" city overview")); }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v7";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v8";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
