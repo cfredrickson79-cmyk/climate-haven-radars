@@ -58,6 +58,10 @@
     text-align:center;font-weight:700;color:var(--ink)}
   input:focus{outline:2px solid var(--accent);outline-offset:-2px}
   .rowlabel{background:#f7f9fb;display:flex;align-items:center;gap:2px}
+  .wtin{flex:0 0 auto;width:46px;margin-right:6px;padding:2px 3px;border:1px solid var(--line);border-radius:5px;
+    font-size:11px;text-align:center;font-variant-numeric:tabular-nums;color:var(--ink);background:#fff}
+  .wtbadge{flex:0 0 auto;margin-right:6px;font-size:10px;font-weight:800;color:var(--accent);
+    background:#eaf4f6;border-radius:5px;padding:1px 5px}
   .x{cursor:pointer;color:#b9c4cd;font-weight:800;padding:0 6px;font-size:14px;user-select:none;line-height:1}
   .x:hover{color:var(--danger)}
   .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -170,7 +174,6 @@ function gradeBase(v){ return grade(v).charAt(0); }
 function defaults(){
   const META=[
     {name:"Logan, UT",                     url:"https://en.wikipedia.org/wiki/Logan,_Utah",                                      color:"#005f73"},
-    {name:"Pittsburgh (Cranberry Twp, PA)",url:"https://en.wikipedia.org/wiki/Cranberry_Township,_Butler_County,_Pennsylvania", color:"#9b2226"},
     {name:"Madison, WI",                   url:"https://en.wikipedia.org/wiki/Madison,_Wisconsin",                               color:"#ca6702"},
     {name:"Johnson City, TN",              url:"https://en.wikipedia.org/wiki/Johnson_City,_Tennessee",                          color:"#588157"},
     {name:"Charlottesville, VA",           url:"https://en.wikipedia.org/wiki/Charlottesville,_Virginia",                        color:"#3d348b"},
@@ -184,22 +187,25 @@ function defaults(){
   return {
     comfort2030:{
       label:"Comfort · 2030s",
-      note:DELTA+"Each city is scored on its OWN data, ranked against Logan. Summer Feels-Like blends heat AND humidity toward a moderate 'Long Beach' sweet spot — Johnson City's mild ~1,600 ft Appalachian summer rates best; bone-dry Logan and low-lying muggy Charlottesville are the two extremes at the bottom. Winter Character peaks at 20s–30s WITH snow: Pittsburgh's mild-snowy winter tops it, while Logan and Madison's sub-zero snaps sink them. Sky Balance rewards an even sun/cloud mix that trades off often — Roanoke's frontal variety wins, Pittsburgh's long gray and Logan's relentless dry sun both lose. Four-Season Distinctness favors Pittsburgh and the VA Blue Ridge's four vivid, comfortable seasons. Allergy is on general pollen load (Madison lowest; VA's Piedmont pollen highest; Logan reflects your personal Cache-Valley June reaction). Compare with Comfort · 2040s to see who fades.",
-      params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
-      cities:mk([[3,3,5,3,2],[6,8,3,8,5],[5,4,4,5,7],[8,5,7,4,4],[4,6,6,7,2],[7,7,8,6,3]])
+      note:DELTA+"Each city is scored on its OWN data, ranked against Logan. Summer Comfort blends heat AND humidity toward a moderate sweet spot: Johnson City's mild ~1,600 ft Appalachian summer rates best, while bone-dry Logan and low-lying muggy Charlottesville sit near the bottom. Winter Comfort rewards a milder winter, so the Virginia and Tennessee cities lead and Logan and Madison's deep cold sinks them. Winter Light / Short Gray Season is the key comfort axis for us: it rewards winter sun and a SHORT overcast season and penalizes a long gray one, so the Blue Ridge and Piedmont cities score well, Madison's long Midwest overcast scores lower, and Logan lands mid because its inversions are gray but bounded. Four-Season Definition favors four genuine, comfortable seasons. Allergy Resilience is Logan-2 (your Cache Valley reaction), Madison highest today on AAFA's low-burden ranking, and the three Eastern cities a neutral middle until a real pollen test says otherwise. Compare with Comfort · 2040s to see who fades.",
+      params:["Summer Comfort","Winter Comfort","Winter Light / Short Gray Season","Four-Season Definition","Allergy Resilience"],
+      weights:[1,1,1,1,1],
+      cities:mk([[4,3,6,7,2],[5,3,5,8,7],[8,6,6,6,5],[4,6,7,7,5],[7,6,7,7,5]])
     },
     comfort2040:{
       label:"Comfort · 2040s",
-      note:DELTA+"Same axes on the ~2045 trajectory: warming softens Summer Feels-Like (worst in the humid South/TN), thins winter snow (nudging mild places toward the 'no snow' penalty), lengthens allergy season, and blurs Four-Season Distinctness in the South. Where a city's 2040s star is SMALLER than its 2030s star, its comfort is eroding — the 'happy now but not later' test. Madison and Charlottesville fade most; Roanoke and Pittsburgh hold up best (Logan is already near the floor).",
-      params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
-      cities:mk([[2,3,5,3,2],[5,7,3,7,4],[4,3,4,4,5],[7,4,7,3,3],[2,5,6,6,1],[6,6,8,5,2]])
+      note:DELTA+"Same axes on the ~2045 trajectory: warming pushes Summer Comfort DOWN (worst in the humid South and low Piedmont), nudges Winter Comfort UP as cold snaps ease, lengthens the allergy season, and slightly blurs Four-Season Definition. Where a city's 2040s star is SMALLER than its 2030s star, its comfort is eroding: the 'happy now but not later' test. Charlottesville and Madison give back the most on summer and allergy; Roanoke and Johnson City hold up best. Logan stays near the comfort floor either way.",
+      params:["Summer Comfort","Winter Comfort","Winter Light / Short Gray Season","Four-Season Definition","Allergy Resilience"],
+      weights:[1,1,1,1,1],
+      cities:mk([[3,3,6,6,2],[4,4,5,7,5],[7,6,6,5,5],[2,7,7,6,4],[6,7,7,6,5]])
     },
     economic:{
       label:"Economic",
-      note:DELTA+"Present-day economics for a CASH home purchase (no mortgage): Purchase Price is the sticker cash outlay; Carrying Cost blends property tax, insurance, utilities and maintenance on a paid-off house. Income Tax reflects a remote earner; Retirement Tax reflects retired parents. Tennessee's no-income-tax status and Pennsylvania's full exemption of retirement income anchor the top of the tax axes; Wisconsin (which taxes pensions and 401k up to 7.65%) anchors the bottom. Outward = cheaper / friendlier than Logan.",
+      note:DELTA+"Present-day economics for a CASH home purchase (no mortgage): Purchase Price is the sticker cash outlay; Carrying Cost blends property tax, insurance, utilities and maintenance on a paid-off house. Income Tax reflects a remote earner; Retirement Tax reflects retired parents. Tennessee's no-income-tax status anchors the top of the tax axes, while Wisconsin (which taxes pensions and 401k up to 7.65%) anchors the bottom; Virginia sits in between (Social Security exempt plus a $12k age deduction). Outward = cheaper / friendlier than Logan.",
       params:["Home Purchase Price (lower cost)","Home Carrying Cost (lower cost)","Overall Cost of Living",
               "State Income Tax (lower burden)","Retirement Tax-Friendliness"],
-      cities:mk([[6,9,5,7,4],[5,4,6,8,9],[4,2,4,4,3],[8,7,7,10,10],[3,6,2,5,6],[9,5,8,5,6]])
+      weights:[1,1,1,1,1],
+      cities:mk([[6,9,5,7,4],[4,2,4,4,3],[8,7,7,10,10],[3,6,2,5,6],[9,5,8,5,6]])
     },
     accessibility:{
       label:"Accessibility",
@@ -207,18 +213,20 @@ function defaults(){
         "≥120 min = prohibitive (F). Plus K-12 and higher-ed strength, hospital quality/proximity, a well-connected airport, and walkable "+
         "neighborhoods with parks and trails. Outward = more / better access than Logan.",
       params:["Water Recreation","Education","Healthcare","Airport Proximity","Walkability & Parks"],
-      cities:mk([[6,6,4,3,5],[8,7,10,9,2],[10,9,8,7,6],[7,4,6,4,3],[4,8,9,4,5],[5,5,7,5,4]])
+      weights:[1,1,1,1,1],
+      cities:mk([[6,6,4,3,5],[10,9,8,7,6],[7,4,6,4,3],[4,8,9,4,5],[5,5,7,5,4]])
     },
     safety:{
       label:"Safety",
-      note:DELTA+"Hazard exposure and adaptation through ~2045. Air Quality is anchored to Logan's reality: the WORST is a winter "+
-        "inversion loaded with wildfire smoke (plus the arsenic-dust risk from the drying Great Salt Lake bed for Cache County); the BEST "+
-        "is the clean air right after a rainstorm flushes the inversion — every city sits on that spectrum. Fire / Smoke weighs STRUCTURAL "+
-        "smoke (chronic local fire + a valley bowl that traps it — Logan's core problem) far above episodic Canadian smoke that rain clears. "+
-        "Flood assumes a smart ~$550–600K purchase OUT of the floodplain. Then storm/tornado/hurricane, long-term water & food security, and "+
-        "Climate Plan & Governance (does the state/city actually plan for climate change?). Outward = safer / better-governed than Logan.",
+      note:DELTA+"Hazard exposure and adaptation through ~2045. Air Quality is scored against neutral data rather than Logan's worst day: "+
+        "Cache Valley's winter inversions are a real but seasonal problem and are improving, and the Great Salt Lake arsenic-dust risk is mainly "+
+        "a Wasatch Front concern, so Logan reads moderate here, not rock-bottom. Fire / Smoke weighs STRUCTURAL smoke (a chronic local source plus "+
+        "terrain that traps it) above episodic Canadian smoke that rain clears. Flood assumes a smart ~$550–600K purchase OUT of the floodplain. "+
+        "Then storm/tornado/hurricane, long-term water & food security, and Climate Plan & Governance (does the state/city actually plan for "+
+        "climate change?). Outward = safer / better-governed than Logan.",
       params:["Fire / Smoke Safety","Air Quality","Flood Safety","Storm / Tornado Safety","Water & Food Security","Climate Plan & Governance"],
-      cities:mk([[2,1,9,10,2,3],[8,5,8,5,6,4],[9,9,7,4,9,9],[5,6,4,6,8,5],[7,8,6,7,5,8],[6,7,5,8,7,7]])
+      weights:[1,1,1,1,1,1],
+      cities:mk([[5,3,9,10,6,4],[9,9,7,4,9,9],[5,6,4,6,8,5],[7,8,6,7,5,8],[6,7,5,8,7,7]])
     }
   };
 }
@@ -256,14 +264,16 @@ function toDisplay(vals,ds){
   return deltaVals(vals,ds).map(x=> 5+Math.max(-5,Math.min(5,x)));
 }
 // average of the axis scores → letter band
-function avgVal(vals){ if(!vals.length) return 0; let s=0; for(const v of vals) s+=Math.max(0,Math.min(10,v)); return s/vals.length; }
+function avgVal(vals,wts){ if(!vals.length) return 0; let s=0,w=0; for(let i=0;i<vals.length;i++){ const ww=(wts&&isFinite(wts[i]))?Math.max(0,wts[i]):1; s+=Math.max(0,Math.min(10,vals[i]))*ww; w+=ww; } return w>0?s/w:0; }
+// per-radar axis weights, default all 1; tolerant of missing/mismatched saved copies
+function wtOf(ds){ const n=ds.params.length; if(!Array.isArray(ds.weights)||ds.weights.length!==n){ ds.weights=Array.from({length:n},()=>1); } return ds.weights; }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v13";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v14";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9","climateHavenRadars_v10","climateHavenRadars_v11","climateHavenRadars_v12"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9","climateHavenRadars_v10","climateHavenRadars_v11","climateHavenRadars_v12","climateHavenRadars_v13"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
@@ -281,6 +291,7 @@ function renderTabs(){
 function renderTable(){
   const ds=DATA[active];
   const isDelta=viewMode==="delta";
+  const wts=wtOf(ds);
   document.getElementById("tableTitle").textContent="Grades — "+ds.label;
   document.getElementById("chartTitle").textContent=ds.label+(isDelta?"  ·  vs Logan":"");
   document.getElementById("note").innerHTML=ds.note;
@@ -309,7 +320,11 @@ function renderTable(){
     const lab=document.createElement("td"); lab.className="rowlabel";
     const roP=locked?" readonly":"";
     const rmP=locked?"":`<span class="x" title="Remove parameter" onclick="removeParam(${pi})">&times;</span>`;
-    lab.innerHTML=rmP+`<input class="pname"${roP} value="${escAttr(p)}" onchange="setParamName(${pi},this.value)">`;
+    const wv=wts[pi];
+    const wCtl=locked
+      ? (wv!==1 ? `<span class="wtbadge" title="Weight in the Overall grade">&times;${wv}</span>` : ``)
+      : `<input class="wtin" type="number" min="0" max="9" step="0.5" value="${wv}" title="Weight of this axis in the Overall grade" onchange="setWeight(${pi},this.value)">`;
+    lab.innerHTML=rmP+`<input class="pname"${roP} value="${escAttr(p)}" onchange="setParamName(${pi},this.value)">`+wCtl;
     tr.appendChild(lab);
     ds.cities.forEach((c,ci)=>{
       const td=document.createElement("td");
@@ -328,7 +343,7 @@ function renderTable(){
   // summary: Overall grade (average of the axes), letters, both view modes
   const ar=document.createElement("tr"); ar.className="blendrow";
   const al=document.createElement("td"); al.className="blendlbl"; al.textContent="Overall grade"; ar.appendChild(al);
-  ds.cities.forEach(c=>{ const a=avgVal(c.values), g=grade(a), gb=gradeBase(a);
+  ds.cities.forEach(c=>{ const a=avgVal(c.values,wts), g=grade(a), gb=gradeBase(a);
     const td=document.createElement("td"); td.className="blendval g"+gb+(c.hidden?" colhidden":""); td.textContent=g; ar.appendChild(td); });
   tbl.appendChild(ar);
 
@@ -338,7 +353,7 @@ function renderTable(){
   const bn=document.getElementById("lockBanner");
   if(bn) bn.textContent=locked
     ? "Locked — grades show as letters (A+ best … F worst) and are read-only. Unlock to edit the raw 0–10 behind them. The chart follows the view toggle."
-    : "Editing unlocked — cells show the raw 0–10 scores; changes save to this browser only. The A+…F letter is just how they display when locked. Use Export to keep a copy.";
+    : "Editing unlocked — cells show the raw 0–10 scores; changes save to this browser only. Set an axis Weight (×) next to its name to make it count more or less in the Overall grade. Use Export to keep a copy.";
 }
 
 function polygonPoints(vals,cx,cy,R,N){
@@ -506,18 +521,19 @@ function setVal(ci,pi,v){ let n=parseFloat(v); if(isNaN(n))n=0; n=Math.max(0,Mat
   DATA[active].cities[ci].values[pi]=n; renderAll(); }
 function setCityName(ci,v){ DATA[active].cities[ci].name=v||("City "+(ci+1)); renderAll(); }
 function setParamName(pi,v){ DATA[active].params[pi]=v||("Param "+(pi+1)); renderAll(); }
+function setWeight(pi,v){ const ds=DATA[active]; const w=wtOf(ds); let n=parseFloat(v); if(isNaN(n)||n<0)n=1; ds.weights[pi]=n; renderAll(); }
 function toggleHidden(ci){ const c=DATA[active].cities[ci]; c.hidden=!c.hidden;
   if(c.hidden && focusIndex===ci){ stopMorph(); focusIndex=null; }
   renderAll(); }
 function removeCity(ci){ const ds=DATA[active]; if(ds.cities.length<=1){alert("Keep at least one city.");return;}
   ds.cities.splice(ci,1); showAll(); renderAll(); }
 function removeParam(pi){ const ds=DATA[active]; if(ds.params.length<=3){alert("A radar needs at least 3 axes.");return;}
-  ds.params.splice(pi,1); ds.cities.forEach(c=>c.values.splice(pi,1)); openLabels[active].clear(); renderAll(); }
+  ds.params.splice(pi,1); ds.cities.forEach(c=>c.values.splice(pi,1)); wtOf(ds).splice(pi,1); openLabels[active].clear(); renderAll(); }
 function addCity(){ const ds=DATA[active]; const name=prompt("New city name:","New City"); if(name===null)return;
   const color=PALETTE[ds.cities.length%PALETTE.length];
   ds.cities.push({name:name||"New City",color,values:ds.params.map(()=>5)}); showAll(); renderAll(); }
 function addParam(){ const ds=DATA[active]; const name=prompt("New parameter name:","New Parameter"); if(name===null)return;
-  ds.params.push(name||"New Parameter"); ds.cities.forEach(c=>c.values.push(5)); renderAll(); }
+  ds.params.push(name||"New Parameter"); ds.cities.forEach(c=>c.values.push(5)); wtOf(ds).push(1); renderAll(); }
 function resetActive(){ if(!confirm("Reset this radar to its starting data?"))return;
   DATA[active]=defaults()[active]; openLabels[active].clear(); showAll(); renderAll(); }
 
