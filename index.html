@@ -184,32 +184,22 @@ function defaults(){
   return {
     comfort2030:{
       label:"Comfort · 2030s",
-      note:DELTA+"Each city is scored on its OWN data, ranked against Logan. Summer Feels-Like blends heat AND humidity toward a moderate "+
-        "'Long Beach' sweet spot (bone-dry Logan and muggy Southern summers both score lower; Madison's moderate lake-country summer rates "+
-        "best of the six). Winter Character peaks at 20s–30s WITH snow — Pittsburgh's mild-snowy winter tops it; Madison's sub-zero snaps "+
-        "sink it. Sky Balance rewards a roughly even sun/cloud mix that trades off often — the mid-Atlantic's frontal variety wins, "+
-        "Pittsburgh's gray loses. Four-Season Distinctness favors the VA Blue Ridge's four vivid, comfortable seasons. Allergy is on general "+
-        "pollen load (Madison best; Logan = your personal Cache-Valley June reaction). Compare with Comfort · 2040s to see who fades.",
+      note:DELTA+"Each city is scored on its OWN data, ranked against Logan. Summer Feels-Like blends heat AND humidity toward a moderate 'Long Beach' sweet spot — Johnson City's mild ~1,600 ft Appalachian summer rates best; bone-dry Logan and low-lying muggy Charlottesville are the two extremes at the bottom. Winter Character peaks at 20s–30s WITH snow: Pittsburgh's mild-snowy winter tops it, while Logan and Madison's sub-zero snaps sink them. Sky Balance rewards an even sun/cloud mix that trades off often — Roanoke's frontal variety wins, Pittsburgh's long gray and Logan's relentless dry sun both lose. Four-Season Distinctness favors Pittsburgh and the VA Blue Ridge's four vivid, comfortable seasons. Allergy is on general pollen load (Madison lowest; VA's Piedmont pollen highest; Logan reflects your personal Cache-Valley June reaction). Compare with Comfort · 2040s to see who fades.",
       params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
-      cities:mk([[4,5,5,5,2],[6,8,3,7,4],[8,3,6,6,6],[5,6,7,8,3],[4,6,8,9,3],[7,7,7,8,3]])
+      cities:mk([[3,3,5,3,2],[6,8,3,8,5],[5,4,4,5,7],[8,5,7,4,4],[4,6,6,7,2],[7,7,8,6,3]])
     },
     comfort2040:{
       label:"Comfort · 2040s",
-      note:DELTA+"Same axes on the ~2045 trajectory: warming softens Summer Feels-Like (worst in the humid South/TN), thins winter snow "+
-        "(nudging mild places toward the 'no snow' penalty), lengthens allergy season, and blurs Four-Season Distinctness in the South. "+
-        "Where a city's 2040s star is SMALLER than its 2030s star, its comfort is eroding — the 'happy now but not later' test. Johnson "+
-        "City and Charlottesville fade most; Roanoke and Madison hold up best.",
+      note:DELTA+"Same axes on the ~2045 trajectory: warming softens Summer Feels-Like (worst in the humid South/TN), thins winter snow (nudging mild places toward the 'no snow' penalty), lengthens allergy season, and blurs Four-Season Distinctness in the South. Where a city's 2040s star is SMALLER than its 2030s star, its comfort is eroding — the 'happy now but not later' test. Madison and Charlottesville fade most; Roanoke and Pittsburgh hold up best (Logan is already near the floor).",
       params:["Summer Feels-Like","Winter Character","Sky Balance","Four-Season Distinctness","Allergy Resilience"],
-      cities:mk([[3,5,5,5,2],[5,7,3,7,3],[7,4,6,6,5],[4,5,6,6,2],[3,5,7,7,2],[6,6,7,6,2]])
+      cities:mk([[2,3,5,3,2],[5,7,3,7,4],[4,3,4,4,5],[7,4,7,3,3],[2,5,6,6,1],[6,6,8,5,2]])
     },
     economic:{
       label:"Economic",
-      note:DELTA+"Present-day economics for a CASH home purchase (no mortgage): Purchase Price is the sticker cash outlay; Carrying Cost "+
-        "blends property tax, insurance, utilities and maintenance on a paid-off house. Income Tax reflects a remote earner; Retirement Tax "+
-        "reflects retired parents. Tennessee's no-income-tax status anchors the tax axes. Outward = cheaper / friendlier than Logan.",
+      note:DELTA+"Present-day economics for a CASH home purchase (no mortgage): Purchase Price is the sticker cash outlay; Carrying Cost blends property tax, insurance, utilities and maintenance on a paid-off house. Income Tax reflects a remote earner; Retirement Tax reflects retired parents. Tennessee's no-income-tax status and Pennsylvania's full exemption of retirement income anchor the top of the tax axes; Wisconsin (which taxes pensions and 401k up to 7.65%) anchors the bottom. Outward = cheaper / friendlier than Logan.",
       params:["Home Purchase Price (lower cost)","Home Carrying Cost (lower cost)","Overall Cost of Living",
               "State Income Tax (lower burden)","Retirement Tax-Friendliness"],
-      cities:mk([[5,9,4,6,2],[4,4,6,7,6],[4,2,3,4,6],[8,9,8,10,10],[3,6,5,5,6],[8,5,4,5,6]])
+      cities:mk([[6,9,5,7,4],[5,4,6,8,9],[4,2,4,4,3],[8,7,7,10,10],[3,6,2,5,6],[9,5,8,5,6]])
     },
     accessibility:{
       label:"Accessibility",
@@ -217,7 +207,7 @@ function defaults(){
         "≥120 min = prohibitive (F). Plus K-12 and higher-ed strength, hospital quality/proximity, a well-connected airport, and walkable "+
         "neighborhoods with parks and trails. Outward = more / better access than Logan.",
       params:["Water Recreation","Education","Healthcare","Airport Proximity","Walkability & Parks"],
-      cities:mk([[6,6,4,4,5],[9,9,10,9,5],[10,8,9,7,8],[9,5,4,4,4],[7,9,9,5,8],[7,6,7,5,6]])
+      cities:mk([[6,6,4,3,5],[8,7,10,9,2],[10,9,8,7,6],[7,4,6,4,3],[4,8,9,4,5],[5,5,7,5,4]])
     },
     safety:{
       label:"Safety",
@@ -228,7 +218,7 @@ function defaults(){
         "Flood assumes a smart ~$550–600K purchase OUT of the floodplain. Then storm/tornado/hurricane, long-term water & food security, and "+
         "Climate Plan & Governance (does the state/city actually plan for climate change?). Outward = safer / better-governed than Logan.",
       params:["Fire / Smoke Safety","Air Quality","Flood Safety","Storm / Tornado Safety","Water & Food Security","Climate Plan & Governance"],
-      cities:mk([[2,1,8,10,2,3],[9,6,9,6,9,7],[9,9,8,6,8,8],[7,7,8,5,8,3],[8,8,8,6,8,7],[7,8,7,6,8,6]])
+      cities:mk([[2,1,9,10,2,3],[8,5,8,5,6,4],[9,9,7,4,9,9],[5,6,4,6,8,5],[7,8,6,7,5,8],[6,7,5,8,7,7]])
     }
   };
 }
@@ -269,11 +259,11 @@ function toDisplay(vals,ds){
 function avgVal(vals){ if(!vals.length) return 0; let s=0; for(const v of vals) s+=Math.max(0,Math.min(10,v)); return s/vals.length; }
 
 /* ---------- persistence ---------- */
-const STORE_KEY="climateHavenRadars_v12";  // bump to invalidate stale saved copies
+const STORE_KEY="climateHavenRadars_v13";  // bump to invalidate stale saved copies
 function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); }catch(e){} }
 function load(){
   try{ const s=localStorage.getItem(STORE_KEY); if(s){ const d=JSON.parse(s); if(d&&d.comfort2030&&d.safety) return d; } }catch(e){}
-  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9","climateHavenRadars_v10","climateHavenRadars_v11"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ ["climateHavenRadars","climateHavenRadars_v2","climateHavenRadars_v3","climateHavenRadars_v4","climateHavenRadars_v5","climateHavenRadars_v6","climateHavenRadars_v7","climateHavenRadars_v8","climateHavenRadars_v9","climateHavenRadars_v10","climateHavenRadars_v11","climateHavenRadars_v12"].forEach(k=>localStorage.removeItem(k)); }catch(e){}
   return defaults();
 }
 
